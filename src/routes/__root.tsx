@@ -92,6 +92,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Project Gambit — Your Personal AI Chess Coach" },
+      { name: "description", content: "Gambit Coach is a free web app that analyzes chess games like a personal coach." },
+      { property: "og:description", content: "Gambit Coach is a free web app that analyzes chess games like a personal coach." },
+      { name: "twitter:description", content: "Gambit Coach is a free web app that analyzes chess games like a personal coach." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/79dde12d-9fd1-4b2a-8d86-4dde4bcf3b64/id-preview-e6912d02--dd228ce8-ca8c-48c7-ac1f-aeb53d248240.lovable.app-1782865618822.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/79dde12d-9fd1-4b2a-8d86-4dde4bcf3b64/id-preview-e6912d02--dd228ce8-ca8c-48c7-ac1f-aeb53d248240.lovable.app-1782865618822.png" },
     ],
     links: [
       {
