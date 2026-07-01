@@ -128,6 +128,7 @@ export async function analyzeGame(
       uci: playedUci,
       fenBefore: fens[ply],
       fenAfter: fens[ply + 1],
+      evalBefore,
       evalAfter,
       bestMoveUci: bestUci,
       bestMoveSan: bestUci ? uciToSan(fens[ply], bestUci) : null,
