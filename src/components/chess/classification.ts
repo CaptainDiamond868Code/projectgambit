@@ -7,6 +7,7 @@ interface ClsMeta {
   border: string;
   dot: string;
   symbol: string;
+  cssVar: string;
 }
 
 /**
@@ -21,6 +22,7 @@ export const CLS_META: Record<MoveClassification, ClsMeta> = {
     border: "border-cls-best/35",
     dot: "bg-cls-best",
     symbol: "★",
+    cssVar: "var(--cls-best)",
   },
   excellent: {
     label: "Excellent",
@@ -29,6 +31,7 @@ export const CLS_META: Record<MoveClassification, ClsMeta> = {
     border: "border-cls-excellent/35",
     dot: "bg-cls-excellent",
     symbol: "!",
+    cssVar: "var(--cls-excellent)",
   },
   good: {
     label: "Good",
@@ -37,6 +40,7 @@ export const CLS_META: Record<MoveClassification, ClsMeta> = {
     border: "border-cls-good/35",
     dot: "bg-cls-good",
     symbol: "✓",
+    cssVar: "var(--cls-good)",
   },
   inaccuracy: {
     label: "Inaccuracy",
@@ -45,6 +49,7 @@ export const CLS_META: Record<MoveClassification, ClsMeta> = {
     border: "border-cls-inaccuracy/35",
     dot: "bg-cls-inaccuracy",
     symbol: "?!",
+    cssVar: "var(--cls-inaccuracy)",
   },
   mistake: {
     label: "Mistake",
@@ -53,6 +58,7 @@ export const CLS_META: Record<MoveClassification, ClsMeta> = {
     border: "border-cls-mistake/35",
     dot: "bg-cls-mistake",
     symbol: "?",
+    cssVar: "var(--cls-mistake)",
   },
   blunder: {
     label: "Blunder",
@@ -61,5 +67,6 @@ export const CLS_META: Record<MoveClassification, ClsMeta> = {
     border: "border-cls-blunder/40",
     dot: "bg-cls-blunder",
     symbol: "??",
+    cssVar: "var(--cls-blunder)",
   },
 };
