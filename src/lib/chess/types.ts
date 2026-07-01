@@ -1,0 +1,106 @@
+// Shared chess-analysis types. Every evaluation value in the app originates
+// from Stockfish — the AI layer only ever explains these numbers.
+
+export type Color = "white" | "black";
+
+export type MoveClassification =
+  | "best"
+  | "excellent"
+  | "good"
+  | "inaccuracy"
+  | "mistake"
+  | "blunder";
+
+export type GamePhase = "opening" | "middlegame" | "endgame";
+
+/** Raw evaluation from Stockfish, normalized to White's point of view. */
+export interface Evaluation {
+  /** Centipawns from White's perspective (null when a forced mate is found). */
+  cp: number | null;
+  /** Moves-to-mate from White's perspective (positive = White mates). */
+  mate: number | null;
+  /** Best move in UCI notation (e.g. "e2e4"). */
+  bestMove: string | null;
+  /** Principal variation in UCI notation. */
+  pv: string[];
+  /** Depth the evaluation was searched to. */
+  depth: number;
+}
+
+export interface AnalyzedMove {
+  /** 0-based ply index. */
+  ply: number;
+  /** Full-move number (1, 1, 2, 2, ...). */
+  moveNumber: number;
+  color: Color;
+  san: string;
+  uci: string;
+  /** FEN before the move was played. */
+  fenBefore: string;
+  /** FEN after the move was played. */
+  fenAfter: string;
+  /** Evaluation of the position before the move, White POV. */
+  evalBefore: Evaluation;
+  /** Evaluation of the resulting position, White POV. */
+  evalAfter: Evaluation;
+  /** Engine's best move at fenBefore, in SAN. */
+  bestMoveSan: string | null;
+  /** Engine's best move at fenBefore, in UCI. */
+  bestMoveUci: string | null;
+  /** Principal variation from fenBefore, in SAN. */
+  bestLineSan: string[];
+  /** Centipawn loss vs. the engine's best move (>= 0). */
+  centipawnLoss: number;
+  classification: MoveClassification;
+  phase: GamePhase;
+}
+
+export interface PlayerStats {
+  color: Color;
+  accuracy: number;
+  averageCentipawnLoss: number;
+  counts: Record<MoveClassification, number>;
+}
+
+export interface GameMeta {
+  white: string;
+  black: string;
+  result: string;
+  event?: string;
+  date?: string;
+  opening?: string;
+  eco?: string;
+}
+
+export interface GameAnalysis {
+  meta: GameMeta;
+  moves: AnalyzedMove[];
+  fens: string[];
+  stats: Record<Color, PlayerStats>;
+  depth: number;
+}
+
+/** The three biggest mistakes for a given player, fed to the coach. */
+export interface KeyMistake {
+  ply: number;
+  moveNumber: number;
+  color: Color;
+  san: string;
+  bestMoveSan: string | null;
+  bestLineSan: string[];
+  centipawnLoss: number;
+  classification: MoveClassification;
+  phase: GamePhase;
+  evalBeforeText: string;
+  evalAfterText: string;
+  fenBefore: string;
+  fenAfter: string;
+}
+
+export interface CoachingReport {
+  overallSummary: string;
+  biggestStrength: { title: string; detail: string };
+  biggestWeakness: { title: string; detail: string };
+  mistakes: Array<{ whyItMattered: string; betterIdea: string; remember: string }>;
+  recommendation: string;
+}
