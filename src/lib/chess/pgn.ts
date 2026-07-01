@@ -50,10 +50,10 @@ export function validatePgn(pgn: string): PgnValidationResult {
     white: headers.White || "White",
     black: headers.Black || "Black",
     result: headers.Result || "*",
-    event: headers.Event,
-    date: headers.Date,
-    opening: headers.Opening,
-    eco: headers.ECO,
+    event: headers.Event || undefined,
+    date: headers.Date || undefined,
+    opening: headers.Opening || undefined,
+    eco: headers.ECO || undefined,
   };
 
   return {
