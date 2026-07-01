@@ -62,6 +62,4 @@ export function validatePgn(pgn: string): PgnValidationResult {
   };
 }
 
-export function detectPlayerColor(meta: GameMeta): "white" | "black" | null {
-  return null; // Player identity is unknown; the user selects their side.
-}
+// Player identity is unknown from a raw PGN, so the user selects their side.
