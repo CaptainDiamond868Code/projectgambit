@@ -39,6 +39,8 @@ export interface AnalyzedMove {
   fenBefore: string;
   /** FEN after the move was played. */
   fenAfter: string;
+  /** Evaluation of the position before the move, White POV. */
+  evalBefore: Evaluation;
   /** Evaluation of the resulting position, White POV. */
   evalAfter: Evaluation;
   /** Engine's best move at fenBefore, in SAN. */
