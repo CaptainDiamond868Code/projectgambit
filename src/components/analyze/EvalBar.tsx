@@ -18,24 +18,18 @@ export function EvalBar({
   const share = whiteShare(evaluation);
   const whitePct = Math.round(share * 100);
   const label = formatEval(evaluation);
-  // The bar always shows the side at the bottom matching board orientation.
   const bottomIsWhite = orientation === "white";
+  const whiteFillHeight = bottomIsWhite ? whitePct : 100 - whitePct;
 
   return (
-    <div className="flex h-full w-7 flex-col overflow-hidden rounded-lg border border-border bg-board-dark">
-      <div
-        className="w-full bg-board-light transition-[height] duration-200"
-        style={{ height: `${bottomIsWhite ? 100 - whitePct : whitePct}%` }}
-      />
-      <div className="relative flex-1">
-        <span
-          className={`absolute left-1/2 w-full -translate-x-1/2 text-center text-[10px] font-bold tabular-nums ${
-            share >= 0.5 ? "bottom-1 text-board-dark" : "top-1 text-board-light"
-          }`}
-          style={{ writingMode: "vertical-rl", rotate: "180deg" }}
-        >
-          {label}
-        </span>
+    <div className="flex h-full flex-col items-center gap-2">
+      <span className="text-xs font-bold tabular-nums text-foreground">{label}</span>
+      <div className="relative flex w-6 flex-1 flex-col overflow-hidden rounded-md border border-border bg-board-dark">
+        <div className="flex-1" />
+        <div
+          className="w-full bg-board-light transition-[height] duration-200"
+          style={{ height: `${whiteFillHeight}%` }}
+        />
       </div>
     </div>
   );
