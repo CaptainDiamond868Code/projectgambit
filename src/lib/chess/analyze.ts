@@ -181,7 +181,6 @@ export function selectKeyMistakes(
     .sort((a, b) => b.centipawnLoss - a.centipawnLoss)
     .slice(0, limit)
     .map((m) => {
-      const idx = m.ply;
       return {
         ply: m.ply,
         moveNumber: m.moveNumber,
@@ -192,7 +191,7 @@ export function selectKeyMistakes(
         centipawnLoss: m.centipawnLoss,
         classification: m.classification,
         phase: m.phase,
-        evalBeforeText: formatEval(analysis.moves[idx].evalAfter),
+        evalBeforeText: formatEval(m.evalBefore),
         evalAfterText: formatEval(m.evalAfter),
         fenBefore: m.fenBefore,
         fenAfter: m.fenAfter,
