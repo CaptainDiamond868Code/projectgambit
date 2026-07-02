@@ -98,9 +98,43 @@ export interface KeyMistake {
 }
 
 export interface CoachingReport {
-  overallSummary: string;
+  /** Quick-read profile cards shown above the report. */
+  playerSnapshot: {
+    playingStyle: string;
+    biggestStrength: string;
+    biggestWeakness: string;
+    recommendedFocus: string;
+    estimatedLevel: string;
+    /** 0-100 how confident the coach is in this read of the player. */
+    confidenceScore: number;
+  };
+  /** Phase-by-phase written summary of the game. */
+  gameSummary: {
+    opening: string;
+    middlegame: string;
+    endgame: string;
+    tacticalAwareness: string;
+    strategicPlanning: string;
+    pieceActivity: string;
+    kingSafety: string;
+    timeManagement: string;
+    /** One sentence describing the player's overall style. */
+    playingStyle: string;
+  };
   biggestStrength: { title: string; detail: string };
   biggestWeakness: { title: string; detail: string };
-  mistakes: Array<{ whyItMattered: string; betterIdea: string; remember: string }>;
-  recommendation: string;
+  mistakes: Array<{
+    whatHappened: string;
+    whyItHappened: string;
+    betterPlan: string;
+    keyLesson: string;
+    patternCategory: string;
+  }>;
+  /** Actionable practice plan before the next game. */
+  homework: {
+    tacticalExercise: string;
+    strategicGoal: string;
+    habit: string;
+    estimatedTime: string;
+  };
 }
