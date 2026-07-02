@@ -113,9 +113,34 @@ export function GameReview({
       </div>
 
       <div>
-        <h4 className="mb-2 text-sm font-semibold text-muted-foreground">Moves</h4>
+        <div className="mb-2 flex items-center justify-between">
+          <h4 className="text-sm font-semibold text-muted-foreground">Moves</h4>
+          <span className="text-xs text-muted-foreground">
+            {activeIndex} / {maxIndex}
+          </span>
+        </div>
         <MoveList moves={analysis.moves} activeIndex={activeIndex} onSelect={onIndexChange} />
+        <MoveLegend />
       </div>
+    </div>
+  );
+}
+
+function MoveLegend() {
+  const items = [
+    { key: "best", label: "Best" },
+    { key: "inaccuracy", label: "Inaccuracy" },
+    { key: "mistake", label: "Mistake" },
+    { key: "blunder", label: "Blunder" },
+  ] as const;
+  return (
+    <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5">
+      {items.map((it) => (
+        <span key={it.key} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span className={`h-2 w-2 rounded-full ${CLS_META[it.key].dot}`} />
+          {it.label}
+        </span>
+      ))}
     </div>
   );
 }
