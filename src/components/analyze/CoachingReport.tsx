@@ -1,7 +1,36 @@
-import { ArrowRight, Sparkles, TrendingUp, TriangleAlert, Target, Trophy } from "lucide-react";
+import { useState } from "react";
+import {
+  ArrowRight,
+  Sparkles,
+  TrendingUp,
+  TriangleAlert,
+  Target,
+  ChevronDown,
+  Compass,
+  Gauge,
+  Crown,
+  BookOpen,
+  Swords,
+  Brain,
+  Activity,
+  ShieldCheck,
+  Clock,
+  Flag,
+  Dumbbell,
+  Lightbulb,
+  Repeat,
+  Timer,
+  type LucideIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { ChessBoardView, uciSquares } from "@/components/chess/ChessBoardView";
 import { CLS_META } from "@/components/chess/classification";
+import { cn } from "@/lib/utils";
 import type {
   Color,
   CoachingReport as CoachingReportType,
@@ -26,6 +55,8 @@ export function CoachingReport({
 }: CoachingReportProps) {
   const stats = analysis.stats[color];
   const playerName = color === "white" ? analysis.meta.white : analysis.meta.black;
+  const snapshot = report.playerSnapshot;
+  const summary = report.gameSummary;
 
   return (
     <div className="space-y-6">
@@ -61,9 +92,50 @@ export function CoachingReport({
         </div>
       </div>
 
-      {/* Overall summary */}
-      <Section icon={<Sparkles className="h-4 w-4" />} title="Overall Summary">
-        <p className="text-[15px] leading-relaxed text-foreground/90">{report.overallSummary}</p>
+      {/* Player Snapshot */}
+      <Section icon={<Compass className="h-4 w-4" />} title="Player Snapshot">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <SnapshotCard icon={Swords} label="Playing Style" value={snapshot.playingStyle} />
+          <SnapshotCard
+            icon={TrendingUp}
+            label="Biggest Strength"
+            value={snapshot.biggestStrength}
+            tone="best"
+          />
+          <SnapshotCard
+            icon={TriangleAlert}
+            label="Biggest Weakness"
+            value={snapshot.biggestWeakness}
+            tone="mistake"
+          />
+          <SnapshotCard icon={Target} label="Recommended Focus" value={snapshot.recommendedFocus} />
+          <SnapshotCard icon={Crown} label="Estimated Level" value={snapshot.estimatedLevel} />
+          <ConfidenceCard score={snapshot.confidenceScore} />
+        </div>
+      </Section>
+
+      {/* Game summary */}
+      <Section icon={<Sparkles className="h-4 w-4" />} title="Game Summary">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <SummaryItem icon={BookOpen} label="Opening" value={summary.opening} />
+          <SummaryItem icon={Activity} label="Middlegame" value={summary.middlegame} />
+          <SummaryItem icon={Flag} label="Endgame" value={summary.endgame} />
+          <SummaryItem icon={Swords} label="Tactical Awareness" value={summary.tacticalAwareness} />
+          <SummaryItem icon={Brain} label="Strategic Planning" value={summary.strategicPlanning} />
+          <SummaryItem icon={Activity} label="Piece Activity" value={summary.pieceActivity} />
+          <SummaryItem icon={ShieldCheck} label="King Safety" value={summary.kingSafety} />
+          <SummaryItem icon={Clock} label="Time Management" value={summary.timeManagement} />
+        </div>
+        {summary.playingStyle && (
+          <div className="mt-4 rounded-xl border border-primary/25 bg-primary/5 p-4">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-primary">
+              <Sparkles className="h-3.5 w-3.5" /> Your Playing Style
+            </div>
+            <p className="mt-1.5 text-[15px] font-medium leading-relaxed text-foreground/90">
+              {summary.playingStyle}
+            </p>
+          </div>
+        )}
       </Section>
 
       {/* Strength + weakness */}
@@ -93,11 +165,15 @@ export function CoachingReport({
       {/* Three biggest mistakes */}
       <Section icon={<Target className="h-4 w-4" />} title="Three Biggest Mistakes">
         {mistakes.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No significant mistakes were found in this game — excellent play!
-          </p>
+          <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-cls-best/40 bg-cls-best/5 py-10 text-center">
+            <ShieldCheck className="h-8 w-8 text-cls-best" />
+            <p className="text-sm font-medium text-foreground">No major mistakes found — excellent play!</p>
+            <p className="max-w-xs text-xs text-muted-foreground">
+              Stockfish didn't flag any serious errors. Keep playing games to keep sharpening your edge.
+            </p>
+          </div>
         ) : (
-          <div className="space-y-5">
+          <div className="space-y-4">
             {mistakes.map((m, i) => (
               <MistakeCard
                 key={m.ply}
@@ -113,16 +189,101 @@ export function CoachingReport({
         )}
       </Section>
 
-      {/* Recommendation */}
+      {/* Homework */}
       <div className="rounded-2xl border border-gold/40 [background-image:var(--gradient-gold-soft)] p-6">
-        <div className="flex items-center gap-2 text-gold">
-          <Trophy className="h-4 w-4" />
-          <span className="text-xs font-semibold uppercase tracking-wide">Coach's Recommendation</span>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-gold">
+            <Dumbbell className="h-4 w-4" />
+            <span className="text-xs font-semibold uppercase tracking-wide">
+              Homework Before Your Next Game
+            </span>
+          </div>
+          {report.homework.estimatedTime && (
+            <span className="flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-2.5 py-1 text-xs font-medium text-gold">
+              <Timer className="h-3.5 w-3.5" /> {report.homework.estimatedTime}
+            </span>
+          )}
         </div>
-        <p className="mt-2 text-lg font-medium leading-relaxed text-foreground">
-          {report.recommendation}
-        </p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <HomeworkItem icon={Swords} label="Tactical exercise" value={report.homework.tacticalExercise} />
+          <HomeworkItem icon={Lightbulb} label="Strategic goal" value={report.homework.strategicGoal} />
+          <HomeworkItem icon={Repeat} label="Habit to remember" value={report.homework.habit} />
+        </div>
       </div>
+    </div>
+  );
+}
+
+function SnapshotCard({
+  icon: Icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: string;
+  tone?: "best" | "mistake";
+}) {
+  const toneClass =
+    tone === "best"
+      ? "text-cls-best"
+      : tone === "mistake"
+        ? "text-cls-mistake"
+        : "text-primary";
+  return (
+    <div className="rounded-xl border border-border bg-background/40 p-4 transition-colors hover:border-primary/30">
+      <div className={cn("flex items-center gap-2 text-xs font-semibold uppercase tracking-wide", toneClass)}>
+        <Icon className="h-3.5 w-3.5" /> {label}
+      </div>
+      <p className="mt-1.5 text-sm font-medium leading-snug text-foreground">{value}</p>
+    </div>
+  );
+}
+
+function ConfidenceCard({ score }: { score: number }) {
+  const clamped = Math.max(0, Math.min(100, Math.round(score)));
+  return (
+    <div className="rounded-xl border border-border bg-background/40 p-4">
+      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-primary">
+        <Gauge className="h-3.5 w-3.5" /> Confidence Score
+      </div>
+      <div className="mt-1.5 flex items-baseline gap-1">
+        <span className="text-2xl font-bold tabular-nums text-foreground">{clamped}</span>
+        <span className="text-xs text-muted-foreground">/ 100</span>
+      </div>
+      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+        <div
+          className="h-full rounded-full [background-image:var(--gradient-primary)] transition-[width] duration-500"
+          style={{ width: `${clamped}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function SummaryItem({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
+  if (!value) return null;
+  return (
+    <div className="flex gap-3 rounded-xl border border-border bg-background/30 p-3.5">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        <Icon className="h-4 w-4" />
+      </span>
+      <div>
+        <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</div>
+        <p className="mt-0.5 text-sm leading-relaxed text-foreground/90">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+function HomeworkItem({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-gold/30 bg-background/30 p-4">
+      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gold">
+        <Icon className="h-3.5 w-3.5" /> {label}
+      </div>
+      <p className="mt-1.5 text-sm leading-relaxed text-foreground/90">{value}</p>
     </div>
   );
 }
@@ -139,9 +300,16 @@ function MistakeCard({
   mistake: KeyMistake;
   analysis: GameAnalysis;
   color: Color;
-  explanation?: { whyItMattered: string; betterIdea: string; remember: string };
+  explanation?: {
+    whatHappened: string;
+    whyItHappened: string;
+    betterPlan: string;
+    keyLesson: string;
+    patternCategory: string;
+  };
   onJump: () => void;
 }) {
+  const [open, setOpen] = useState(index === 0);
   const move = analysis.moves[mistake.ply];
   const meta = CLS_META[mistake.classification];
   const played = uciSquares(move?.uci);
@@ -159,28 +327,17 @@ function MistakeCard({
     : [];
 
   return (
-    <div className="rounded-2xl border border-border bg-card/40 p-4">
-      <div className="grid gap-5 md:grid-cols-[220px_1fr]">
-        <div>
-          <ChessBoardView
-            id={`mistake-${index}`}
-            fen={mistake.fenBefore}
-            orientation={color}
-            arrows={arrows}
-            highlights={highlights}
-          />
-          <p className="mt-2 text-center text-xs text-muted-foreground">
-            Best was <span className="font-semibold text-cls-best">{mistake.bestMoveSan ?? "—"}</span>
-            {" · "}
-            {mistake.evalBeforeText} → {mistake.evalAfterText}
-          </p>
-        </div>
-
-        <div>
+    <Collapsible
+      open={open}
+      onOpenChange={setOpen}
+      className="overflow-hidden rounded-2xl border border-border bg-card/40 transition-colors hover:border-primary/25"
+    >
+      <CollapsibleTrigger className="flex w-full items-center gap-3 p-4 text-left">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-bold">
+          {index + 1}
+        </span>
+        <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-secondary text-xs font-bold">
-              {index + 1}
-            </span>
             <span className="font-semibold">
               Move {mistake.moveNumber}
               {mistake.color === "black" ? "…" : "."} {mistake.san}
@@ -190,31 +347,82 @@ function MistakeCard({
             >
               {meta.symbol} {meta.label}
             </span>
+            {explanation?.patternCategory && (
+              <span className="rounded-md border border-border bg-secondary/60 px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                {explanation.patternCategory}
+              </span>
+            )}
           </div>
-
-          <div className="mt-3 space-y-3">
-            <Field label="Why it mattered" value={explanation?.whyItMattered} />
-            <Field label="Better idea" value={explanation?.betterIdea} />
-            <Field label="Remember next time" value={explanation?.remember} accent />
+          <div className="mt-0.5 text-xs text-muted-foreground">
+            {mistake.evalBeforeText} → {mistake.evalAfterText} · best was{" "}
+            <span className="font-semibold text-cls-best">{mistake.bestMoveSan ?? "—"}</span>
           </div>
-
-          <Button variant="ghost" size="sm" className="mt-3 text-primary hover:text-primary" onClick={onJump}>
-            View on board <ArrowRight className="h-4 w-4" />
-          </Button>
         </div>
-      </div>
-    </div>
+        <ChevronDown
+          className={cn(
+            "h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200",
+            open && "rotate-180",
+          )}
+        />
+      </CollapsibleTrigger>
+
+      <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
+        <div className="grid gap-5 border-t border-border/60 p-4 md:grid-cols-[220px_1fr]">
+          <div>
+            <ChessBoardView
+              id={`mistake-${index}`}
+              fen={mistake.fenBefore}
+              orientation={color}
+              arrows={arrows}
+              highlights={highlights}
+            />
+            <p className="mt-2 text-center text-xs text-muted-foreground">
+              Best was{" "}
+              <span className="font-semibold text-cls-best">{mistake.bestMoveSan ?? "—"}</span>
+              {" · "}
+              {mistake.evalBeforeText} → {mistake.evalAfterText}
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <Field icon={Activity} label="What happened" value={explanation?.whatHappened} />
+            <Field icon={Brain} label="Why it happened" value={explanation?.whyItHappened} />
+            <Field icon={Target} label="Better move or plan" value={explanation?.betterPlan} />
+            <Field icon={Lightbulb} label="Key lesson" value={explanation?.keyLesson} accent />
+
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-primary hover:text-primary"
+              onClick={onJump}
+            >
+              View on board <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 
-function Field({ label, value, accent }: { label: string; value?: string; accent?: boolean }) {
+function Field({
+  icon: Icon,
+  label,
+  value,
+  accent,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value?: string;
+  accent?: boolean;
+}) {
   if (!value) return null;
   return (
     <div>
       <div
-        className={`text-xs font-semibold uppercase tracking-wide ${accent ? "text-gold" : "text-muted-foreground"}`}
+        className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide ${accent ? "text-gold" : "text-muted-foreground"}`}
       >
-        {label}
+        <Icon className="h-3.5 w-3.5" /> {label}
       </div>
       <p className="mt-0.5 text-sm leading-relaxed text-foreground/90">{value}</p>
     </div>
@@ -232,7 +440,7 @@ function Section({
 }) {
   return (
     <div className="rounded-2xl border border-border bg-card/60 p-6 shadow-[var(--shadow-card)]">
-      <div className="mb-3 flex items-center gap-2">
+      <div className="mb-4 flex items-center gap-2">
         <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
           {icon}
         </span>
