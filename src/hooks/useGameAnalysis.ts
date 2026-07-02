@@ -38,6 +38,7 @@ export function useGameAnalysis() {
     async (pgn: string, meta: GameMeta, color: Color, depth = 13) => {
       const runId = ++runIdRef.current;
       setState({ ...INITIAL, status: "evaluating", color });
+      const hasTimeData = /\[%clk|\[%emt|TimeControl|Clock/i.test(pgn);
 
       try {
         const analysis = await analyzeGame(pgn, meta, depth, (p) => {
@@ -61,6 +62,7 @@ export function useGameAnalysis() {
             counts: stats.counts,
             totalMoves: analysis.moves.filter((m) => m.color === color).length,
             opening: analysis.meta.opening,
+            hasTimeData,
             mistakes: mistakes.map((m) => ({
               moveNumber: m.moveNumber,
               san: m.san,
