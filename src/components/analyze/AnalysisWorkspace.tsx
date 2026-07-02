@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { RotateCcw, AlertTriangle } from "lucide-react";
+import { RotateCcw, AlertTriangle, ShieldCheck, Cpu, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useGameAnalysis } from "@/hooks/useGameAnalysis";
 import { PgnUpload } from "./PgnUpload";
@@ -23,12 +23,20 @@ export function AnalysisWorkspace() {
 
   if (state.status === "idle") {
     return (
-      <div className="py-8">
+      <div className="animate-fade-up py-8">
         <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-xs font-medium text-muted-foreground">
+            <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Powered by Stockfish · Explained by AI
+          </div>
           <h1 className="font-display text-3xl font-bold sm:text-4xl">Analyze your game</h1>
-          <p className="mt-2 text-muted-foreground">
-            Upload a PGN and get a full coaching report powered by Stockfish.
+          <p className="mx-auto mt-2 max-w-md text-muted-foreground">
+            Upload a PGN and get a full coaching report powered by Stockfish — mistakes, patterns, and a plan to improve.
           </p>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5"><Cpu className="h-3.5 w-3.5 text-primary" /> Real engine analysis</span>
+            <span className="flex items-center gap-1.5"><Sparkles className="h-3.5 w-3.5 text-primary" /> Plain-English coaching</span>
+            <span className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-primary" /> No account needed</span>
+          </div>
         </div>
         <PgnUpload onAnalyze={(pgn, meta, color) => run(pgn, meta, color)} />
       </div>
@@ -64,7 +72,7 @@ export function AnalysisWorkspace() {
 
   // ready
   return (
-    <div className="space-y-8 py-8">
+    <div className="animate-fade-up space-y-8 py-8">
       <div className="flex items-center justify-between">
         <h1 className="font-display text-2xl font-bold sm:text-3xl">Your coaching session</h1>
         <Button variant="outline" size="sm" onClick={reset}>
