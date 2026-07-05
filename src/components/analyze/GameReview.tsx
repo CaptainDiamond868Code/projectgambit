@@ -160,6 +160,11 @@ export function GameReview({
             </Button>
           </div>
 
+          <p className="mx-auto mt-2 hidden w-full max-w-[520px] text-center text-xs text-muted-foreground sm:block">
+            Tip: use <kbd className="rounded border border-border bg-secondary/60 px-1">←</kbd>{" "}
+            <kbd className="rounded border border-border bg-secondary/60 px-1">→</kbd> to step through moves
+          </p>
+
           <MoveInfo analysis={analysis} activeIndex={activeIndex} />
 
           <div className="mx-auto mt-3 w-full max-w-[520px]">
