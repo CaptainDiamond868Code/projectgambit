@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/collapsible";
 import { ChessBoardView, uciSquares } from "@/components/chess/ChessBoardView";
 import { CLS_META } from "@/components/chess/classification";
+import { resolveOutcome, outcomeLabel } from "@/lib/chess/classify";
 import { cn } from "@/lib/utils";
 import type {
   Color,
@@ -57,6 +58,14 @@ export function CoachingReport({
   const playerName = color === "white" ? analysis.meta.white : analysis.meta.black;
   const snapshot = report.playerSnapshot;
   const summary = report.gameSummary;
+  const outcome = resolveOutcome(analysis.meta.result, color);
+  const outcomeText = outcomeLabel(outcome);
+  const outcomeClass =
+    outcome === "win"
+      ? "border-cls-best/40 bg-cls-best/10 text-cls-best"
+      : outcome === "loss"
+        ? "border-cls-blunder/40 bg-cls-blunder/10 text-cls-blunder"
+        : "border-cls-good/40 bg-cls-good/10 text-cls-good";
 
   return (
     <div className="space-y-6">
@@ -68,9 +77,19 @@ export function CoachingReport({
               Coaching Report
             </div>
             <h2 className="mt-1 text-2xl font-semibold">{playerName}</h2>
-            <p className="text-sm text-muted-foreground">
-              Playing {color} · {analysis.meta.result}
-              {analysis.meta.opening ? ` · ${analysis.meta.opening}` : ""}
+            <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              <span className="capitalize">Playing {color}</span>
+              {outcomeText && (
+                <span
+                  className={cn(
+                    "rounded-full border px-2 py-0.5 text-xs font-semibold",
+                    outcomeClass,
+                  )}
+                >
+                  {outcomeText}
+                </span>
+              )}
+              {analysis.meta.opening ? <span>· {analysis.meta.opening}</span> : null}
             </p>
           </div>
           <div className="flex gap-3">
@@ -95,22 +114,24 @@ export function CoachingReport({
       {/* Player Snapshot */}
       <Section icon={<Compass className="h-4 w-4" />} title="Player Snapshot">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <SnapshotCard icon={Swords} label="Playing Style" value={snapshot.playingStyle} />
+          <SnapshotCard index={0} icon={Swords} label="Playing Style" value={snapshot.playingStyle} />
           <SnapshotCard
+            index={1}
             icon={TrendingUp}
             label="Biggest Strength"
             value={snapshot.biggestStrength}
             tone="best"
           />
           <SnapshotCard
+            index={2}
             icon={TriangleAlert}
             label="Biggest Weakness"
             value={snapshot.biggestWeakness}
             tone="mistake"
           />
-          <SnapshotCard icon={Target} label="Recommended Focus" value={snapshot.recommendedFocus} />
-          <SnapshotCard icon={Crown} label="Estimated Level" value={snapshot.estimatedLevel} />
-          <ConfidenceCard score={snapshot.confidenceScore} />
+          <SnapshotCard index={3} icon={Target} label="Recommended Focus" value={snapshot.recommendedFocus} />
+          <SnapshotCard index={4} icon={Crown} label="Estimated Level" value={snapshot.estimatedLevel} />
+          <ConfidenceCard index={5} score={snapshot.confidenceScore} />
         </div>
       </Section>
 
@@ -124,6 +145,7 @@ export function CoachingReport({
           <SummaryItem icon={Brain} label="Strategic Planning" value={summary.strategicPlanning} />
           <SummaryItem icon={Activity} label="Piece Activity" value={summary.pieceActivity} />
           <SummaryItem icon={ShieldCheck} label="King Safety" value={summary.kingSafety} />
+          <SummaryItem icon={Gauge} label="Decision Making" value={summary.decisionMaking} />
           <SummaryItem icon={Clock} label="Time Management" value={summary.timeManagement} />
         </div>
         {summary.playingStyle && (
@@ -219,11 +241,13 @@ function SnapshotCard({
   label,
   value,
   tone,
+  index = 0,
 }: {
   icon: LucideIcon;
   label: string;
   value: string;
   tone?: "best" | "mistake";
+  index?: number;
 }) {
   const toneClass =
     tone === "best"
@@ -232,7 +256,10 @@ function SnapshotCard({
         ? "text-cls-mistake"
         : "text-primary";
   return (
-    <div className="rounded-xl border border-border bg-background/40 p-4 transition-colors hover:border-primary/30">
+    <div
+      className="animate-fade-up rounded-xl border border-border bg-background/40 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[var(--shadow-card)]"
+      style={{ animationDelay: `${index * 60}ms` }}
+    >
       <div className={cn("flex items-center gap-2 text-xs font-semibold uppercase tracking-wide", toneClass)}>
         <Icon className="h-3.5 w-3.5" /> {label}
       </div>
@@ -241,10 +268,13 @@ function SnapshotCard({
   );
 }
 
-function ConfidenceCard({ score }: { score: number }) {
+function ConfidenceCard({ score, index = 0 }: { score: number; index?: number }) {
   const clamped = Math.max(0, Math.min(100, Math.round(score)));
   return (
-    <div className="rounded-xl border border-border bg-background/40 p-4">
+    <div
+      className="animate-fade-up rounded-xl border border-border bg-background/40 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[var(--shadow-card)]"
+      style={{ animationDelay: `${index * 60}ms` }}
+    >
       <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-primary">
         <Gauge className="h-3.5 w-3.5" /> Confidence Score
       </div>
@@ -330,7 +360,8 @@ function MistakeCard({
     <Collapsible
       open={open}
       onOpenChange={setOpen}
-      className="overflow-hidden rounded-2xl border border-border bg-card/40 transition-colors hover:border-primary/25"
+      style={{ animationDelay: `${index * 80}ms` }}
+      className="animate-fade-up overflow-hidden rounded-2xl border border-border bg-card/40 transition-all duration-200 hover:border-primary/25 hover:shadow-[var(--shadow-card)]"
     >
       <CollapsibleTrigger className="flex w-full items-center gap-3 p-4 text-left">
         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-bold">

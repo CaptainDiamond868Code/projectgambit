@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { analyzeGame, selectKeyMistakes } from "@/lib/chess/analyze";
+import { resolveOutcome } from "@/lib/chess/classify";
 import type { Color, GameAnalysis, GameMeta, KeyMistake, CoachingReport } from "@/lib/chess/types";
 import { generateCoachingReport } from "@/lib/coaching.functions";
 
@@ -57,6 +58,7 @@ export function useGameAnalysis() {
             playerName: color === "white" ? analysis.meta.white : analysis.meta.black,
             opponentName: color === "white" ? analysis.meta.black : analysis.meta.white,
             result: analysis.meta.result,
+            playerOutcome: resolveOutcome(analysis.meta.result, color),
             accuracy: stats.accuracy,
             averageCentipawnLoss: stats.averageCentipawnLoss,
             counts: stats.counts,

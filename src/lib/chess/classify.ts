@@ -3,6 +3,35 @@ import type { Color, Evaluation, GamePhase, MoveClassification } from "./types";
 /** Clamp used so that decisive/mate positions don't create absurd CPL values. */
 const EVAL_CAP = 1000;
 
+export type GameOutcome = "win" | "loss" | "draw" | "unknown";
+
+/**
+ * Determine, from the PGN result tag and the side the player chose, whether the
+ * analyzed player won, lost or drew. Returns "unknown" for missing/unfinished
+ * results ("*") so the coach never guesses the outcome.
+ */
+export function resolveOutcome(result: string | undefined, color: Color): GameOutcome {
+  const r = (result ?? "").trim();
+  if (r === "1-0") return color === "white" ? "win" : "loss";
+  if (r === "0-1") return color === "black" ? "win" : "loss";
+  if (r === "1/2-1/2" || r === "½-½" || r === "0.5-0.5") return "draw";
+  return "unknown";
+}
+
+/** Short human label for an outcome, or null when it can't be determined. */
+export function outcomeLabel(outcome: GameOutcome): string | null {
+  switch (outcome) {
+    case "win":
+      return "Win";
+    case "loss":
+      return "Loss";
+    case "draw":
+      return "Draw";
+    default:
+      return null;
+  }
+}
+
 /**
  * Convert a Stockfish evaluation (already normalized to White POV) into a
  * single centipawn number for comparison, capping decisive scores.

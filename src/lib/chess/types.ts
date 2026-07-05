@@ -117,6 +117,7 @@ export interface CoachingReport {
     strategicPlanning: string;
     pieceActivity: string;
     kingSafety: string;
+    decisionMaking: string;
     timeManagement: string;
     /** One sentence describing the player's overall style. */
     playingStyle: string;

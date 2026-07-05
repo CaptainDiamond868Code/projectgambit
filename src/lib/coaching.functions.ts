@@ -19,6 +19,7 @@ const InputSchema = z.object({
   playerName: z.string(),
   opponentName: z.string(),
   result: z.string(),
+  playerOutcome: z.enum(["win", "loss", "draw", "unknown"]),
   accuracy: z.number(),
   averageCentipawnLoss: z.number(),
   counts: z.object({
@@ -72,6 +73,7 @@ const RESPONSE_SCHEMA = {
         strategicPlanning: { type: "string" },
         pieceActivity: { type: "string" },
         kingSafety: { type: "string" },
+        decisionMaking: { type: "string" },
         timeManagement: { type: "string" },
         playingStyle: { type: "string" },
       },
@@ -83,6 +85,7 @@ const RESPONSE_SCHEMA = {
         "strategicPlanning",
         "pieceActivity",
         "kingSafety",
+        "decisionMaking",
         "timeManagement",
         "playingStyle",
       ],
@@ -151,13 +154,21 @@ ABSOLUTE RULES — these are non-negotiable:
 - Translate the engine numbers into plain-English chess concepts (development, king safety, hanging pieces, pawn structure, tactics, activity, endgame technique). Teach the idea; do not just restate the engine move.
 - Address the player directly as "you". Be encouraging, educational and conversational. Keep every field to 1-3 sentences unless noted.
 
+GAME RESULT — CRITICAL: The field "playerOutcome" tells you exactly how the game ended for the player you are coaching: "win", "loss", "draw", or "unknown".
+- NEVER assume the player lost. Use "playerOutcome" as the single source of truth for the result.
+- If playerOutcome is "win", celebrate the win. If "loss", be constructive about the loss. If "draw", frame it as a draw.
+- If playerOutcome is "unknown", DO NOT mention or imply who won or lost anywhere in the report — talk only about move quality and ideas.
+- Every summary, coaching paragraph, recommendation and conclusion must be consistent with playerOutcome. A player can play accurately and still win, draw, or lose — never contradict the stated outcome.
+
 TONE: Always start from what the player did well before addressing weaknesses. Even hard feedback should feel constructive and hopeful. Avoid jargon dumps — explain concepts simply.
+
+COACHING VOICE: Never output raw engine phrasing like "Move 15 was a blunder." Instead speak like a human coach: describe the idea the player was going for, why the moment went wrong, and the better plan — e.g. "You spotted an active attacking idea here, but launched it before your pieces were coordinated; finishing development first would have made the attack far stronger." Always be encouraging, constructive, conversational and educational — never insulting or robotic.
 
 ESTIMATES: You may estimate the player's playing style, approximate skill level (as a friendly range, e.g. "Improving beginner (~800-1000)") and a confidence score (0-100) for how clear the read is. Base these on accuracy, centipawn loss and the mix of move classifications — this is a read of the PLAYER, which is allowed, unlike inventing position evaluations.
 
 MISTAKE CARDS: For each mistake produce (1) whatHappened — describe the move and its effect in plain terms; (2) whyItHappened — the likely thinking trap behind it; (3) betterPlan — the improvement, using the provided bestMoveSan/bestLineSan; (4) keyLesson — a short takeaway; (5) patternCategory — a 1-3 word label such as "Premature Attack", "Loose Piece", "Missed Tactic", "King Safety", "Passive Piece", "Pawn Weakness".
 
-GAME SUMMARY: Cover opening, middlegame, endgame, tactical awareness, strategic planning, piece activity, king safety and time management, each 1-2 sentences. If time data is not available, briefly note that pacing could not be measured and give general guidance. Finish "gameSummary.playingStyle" with ONE sentence describing the player's overall style.
+GAME SUMMARY: Cover opening, middlegame, endgame, tactical awareness, strategic planning, piece activity, king safety, decision making and time management, each 1-2 sentences. For "decisionMaking", comment on how well the player chose between candidate ideas and handled critical moments. If time data is not available, briefly note that pacing could not be measured and give general guidance. Finish "gameSummary.playingStyle" with ONE sentence describing the player's overall style.
 
 HOMEWORK: Give one concrete tactical exercise, one strategic goal, one habit to remember, and a realistic estimated practice time (e.g. "15-20 minutes").
 
@@ -173,6 +184,9 @@ function buildUserPrompt(input: CoachingInput): string {
     `Provide exactly ${input.mistakes.length} entries in "mistakes", in the same order as the input mistakes array.`,
     'For "biggestStrength" identify one thing the numbers show the player did consistently well (e.g. low blunder count, accurate opening, few inaccuracies).',
     'For "biggestWeakness" identify the single recurring theme behind the mistakes.',
+    input.playerOutcome === "unknown"
+      ? "The game result is UNKNOWN — do not mention or imply who won or lost anywhere in the report."
+      : `The player's result in this game was a ${input.playerOutcome.toUpperCase()}. Keep every reference to the result consistent with this and never assume a loss.`,
     input.hasTimeData
       ? "Clock/time data IS available for this game; comment on time management accordingly."
       : "No clock/time data is available; note that pacing could not be measured and give general time-management guidance.",

@@ -1,11 +1,13 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ChevronFirst,
   ChevronLast,
   ChevronLeft,
   ChevronRight,
   RefreshCw,
+  Cpu,
 } from "lucide-react";
+import { Chess } from "chess.js";
 import { Button } from "@/components/ui/button";
 import { ChessBoardView, uciSquares } from "@/components/chess/ChessBoardView";
 import { EvalBar } from "@/components/analyze/EvalBar";
@@ -28,6 +30,26 @@ function evalAt(analysis: GameAnalysis, index: number): Evaluation {
   return analysis.moves[index - 1].evalAfter;
 }
 
+/** Convert a UCI principal variation into SAN from a given FEN. */
+function pvToSan(fen: string, pv: string[], max = 8): string[] {
+  const chess = new Chess(fen);
+  const out: string[] = [];
+  for (const uci of pv.slice(0, max)) {
+    try {
+      const move = chess.move({
+        from: uci.slice(0, 2),
+        to: uci.slice(2, 4),
+        promotion: uci.length > 4 ? uci.slice(4, 5) : undefined,
+      });
+      if (!move) break;
+      out.push(move.san);
+    } catch {
+      break;
+    }
+  }
+  return out;
+}
+
 export function GameReview({
   analysis,
   activeIndex,
@@ -35,6 +57,7 @@ export function GameReview({
   defaultOrientation = "white",
 }: GameReviewProps) {
   const [orientation, setOrientation] = useState<Color>(defaultOrientation);
+  const [showEngine, setShowEngine] = useState(false);
   const maxIndex = analysis.fens.length - 1;
   const fen = analysis.fens[activeIndex];
   const currentEval = evalAt(analysis, activeIndex);
@@ -52,6 +75,35 @@ export function GameReview({
   }, [lastMove]);
 
   const go = (i: number) => onIndexChange(Math.max(0, Math.min(maxIndex, i)));
+
+  // Keyboard navigation: ←/→ step moves, Home/End jump to ends.
+  const handleKey = useCallback(
+    (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
+        return;
+      }
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        onIndexChange(Math.min(maxIndex, activeIndex + 1));
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        onIndexChange(Math.max(0, activeIndex - 1));
+      } else if (e.key === "Home") {
+        e.preventDefault();
+        onIndexChange(0);
+      } else if (e.key === "End") {
+        e.preventDefault();
+        onIndexChange(maxIndex);
+      }
+    },
+    [activeIndex, maxIndex, onIndexChange],
+  );
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [handleKey]);
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -108,7 +160,27 @@ export function GameReview({
             </Button>
           </div>
 
+          <p className="mx-auto mt-2 hidden w-full max-w-[520px] text-center text-xs text-muted-foreground sm:block">
+            Tip: use <kbd className="rounded border border-border bg-secondary/60 px-1">←</kbd>{" "}
+            <kbd className="rounded border border-border bg-secondary/60 px-1">→</kbd> to step through moves
+          </p>
+
           <MoveInfo analysis={analysis} activeIndex={activeIndex} />
+
+          <div className="mx-auto mt-3 w-full max-w-[520px]">
+            <Button
+              variant={showEngine ? "secondary" : "outline"}
+              size="sm"
+              className="w-full"
+              onClick={() => setShowEngine((v) => !v)}
+              aria-pressed={showEngine}
+            >
+              <Cpu className="h-4 w-4" /> {showEngine ? "Hide Engine Line" : "Show Engine Line"}
+            </Button>
+            {showEngine && (
+              <EnginePanel fen={fen} evaluation={currentEval} />
+            )}
+          </div>
         </div>
       </div>
 
@@ -126,9 +198,36 @@ export function GameReview({
   );
 }
 
+function EnginePanel({ fen, evaluation }: { fen: string; evaluation: Evaluation }) {
+  const line = useMemo(() => pvToSan(fen, evaluation.pv), [fen, evaluation.pv]);
+  return (
+    <div className="mt-2 animate-fade-up rounded-xl border border-primary/25 bg-primary/5 p-3.5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-primary">
+          <Cpu className="h-3.5 w-3.5" /> Stockfish engine line
+        </span>
+        <span className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span>
+            Eval{" "}
+            <span className="font-semibold tabular-nums text-foreground">{formatEval(evaluation)}</span>
+          </span>
+          {evaluation.depth > 0 && <span>Depth {evaluation.depth}</span>}
+        </span>
+      </div>
+      {line.length > 0 ? (
+        <p className="mt-2 font-mono text-sm leading-relaxed text-foreground/90">{line.join(" ")}</p>
+      ) : (
+        <p className="mt-2 text-sm text-muted-foreground">No further continuation available.</p>
+      )}
+    </div>
+  );
+}
+
 function MoveLegend() {
   const items = [
     { key: "best", label: "Best" },
+    { key: "excellent", label: "Excellent" },
+    { key: "good", label: "Good" },
     { key: "inaccuracy", label: "Inaccuracy" },
     { key: "mistake", label: "Mistake" },
     { key: "blunder", label: "Blunder" },
