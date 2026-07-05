@@ -19,6 +19,7 @@ const InputSchema = z.object({
   playerName: z.string(),
   opponentName: z.string(),
   result: z.string(),
+  playerOutcome: z.enum(["win", "loss", "draw", "unknown"]),
   accuracy: z.number(),
   averageCentipawnLoss: z.number(),
   counts: z.object({
