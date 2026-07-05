@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { RotateCcw, AlertTriangle, ShieldCheck, Cpu, Sparkles } from "lucide-react";
+import { RotateCcw, AlertTriangle, ShieldCheck, Cpu, Sparkles, FileText, ScanLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGameAnalysis } from "@/hooks/useGameAnalysis";
 import { PgnUpload } from "./PgnUpload";
+import { ScoresheetScanner } from "./ScoresheetScanner";
 import { AnalysisProgress } from "./AnalysisProgress";
 import { GameReview } from "./GameReview";
 import { CoachingReport } from "./CoachingReport";
@@ -38,7 +40,22 @@ export function AnalysisWorkspace() {
             <span className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-primary" /> No account needed</span>
           </div>
         </div>
-        <PgnUpload onAnalyze={(pgn, meta, color) => run(pgn, meta, color)} />
+        <Tabs defaultValue="pgn" className="mx-auto w-full max-w-2xl">
+          <TabsList className="mx-auto grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="pgn">
+              <FileText className="h-4 w-4" /> Paste or upload PGN
+            </TabsTrigger>
+            <TabsTrigger value="scan">
+              <ScanLine className="h-4 w-4" /> Scan scoresheet
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="pgn" className="mt-6 animate-fade-up">
+            <PgnUpload onAnalyze={(pgn, meta, color) => run(pgn, meta, color)} />
+          </TabsContent>
+          <TabsContent value="scan" className="mt-6 animate-fade-up">
+            <ScoresheetScanner onAnalyze={(pgn, meta, color) => run(pgn, meta, color)} />
+          </TabsContent>
+        </Tabs>
       </div>
     );
   }
