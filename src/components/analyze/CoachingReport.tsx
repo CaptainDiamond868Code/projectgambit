@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/collapsible";
 import { ChessBoardView, uciSquares } from "@/components/chess/ChessBoardView";
 import { CLS_META } from "@/components/chess/classification";
+import { resolveOutcome, outcomeLabel } from "@/lib/chess/classify";
 import { cn } from "@/lib/utils";
 import type {
   Color,
@@ -57,6 +58,14 @@ export function CoachingReport({
   const playerName = color === "white" ? analysis.meta.white : analysis.meta.black;
   const snapshot = report.playerSnapshot;
   const summary = report.gameSummary;
+  const outcome = resolveOutcome(analysis.meta.result, color);
+  const outcomeText = outcomeLabel(outcome);
+  const outcomeClass =
+    outcome === "win"
+      ? "border-cls-best/40 bg-cls-best/10 text-cls-best"
+      : outcome === "loss"
+        ? "border-cls-blunder/40 bg-cls-blunder/10 text-cls-blunder"
+        : "border-cls-good/40 bg-cls-good/10 text-cls-good";
 
   return (
     <div className="space-y-6">
@@ -68,9 +77,19 @@ export function CoachingReport({
               Coaching Report
             </div>
             <h2 className="mt-1 text-2xl font-semibold">{playerName}</h2>
-            <p className="text-sm text-muted-foreground">
-              Playing {color} · {analysis.meta.result}
-              {analysis.meta.opening ? ` · ${analysis.meta.opening}` : ""}
+            <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              <span className="capitalize">Playing {color}</span>
+              {outcomeText && (
+                <span
+                  className={cn(
+                    "rounded-full border px-2 py-0.5 text-xs font-semibold",
+                    outcomeClass,
+                  )}
+                >
+                  {outcomeText}
+                </span>
+              )}
+              {analysis.meta.opening ? <span>· {analysis.meta.opening}</span> : null}
             </p>
           </div>
           <div className="flex gap-3">
