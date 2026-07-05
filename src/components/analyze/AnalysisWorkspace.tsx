@@ -42,10 +42,10 @@ export function AnalysisWorkspace() {
         </div>
         <Tabs defaultValue="pgn" className="mx-auto w-full max-w-2xl">
           <TabsList className="mx-auto grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="pgn">
+            <TabsTrigger value="pgn" className="gap-1.5">
               <FileText className="h-4 w-4" /> Paste or upload PGN
             </TabsTrigger>
-            <TabsTrigger value="scan">
+            <TabsTrigger value="scan" className="gap-1.5">
               <ScanLine className="h-4 w-4" /> Scan scoresheet
             </TabsTrigger>
           </TabsList>
