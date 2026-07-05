@@ -114,22 +114,24 @@ export function CoachingReport({
       {/* Player Snapshot */}
       <Section icon={<Compass className="h-4 w-4" />} title="Player Snapshot">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <SnapshotCard icon={Swords} label="Playing Style" value={snapshot.playingStyle} />
+          <SnapshotCard index={0} icon={Swords} label="Playing Style" value={snapshot.playingStyle} />
           <SnapshotCard
+            index={1}
             icon={TrendingUp}
             label="Biggest Strength"
             value={snapshot.biggestStrength}
             tone="best"
           />
           <SnapshotCard
+            index={2}
             icon={TriangleAlert}
             label="Biggest Weakness"
             value={snapshot.biggestWeakness}
             tone="mistake"
           />
-          <SnapshotCard icon={Target} label="Recommended Focus" value={snapshot.recommendedFocus} />
-          <SnapshotCard icon={Crown} label="Estimated Level" value={snapshot.estimatedLevel} />
-          <ConfidenceCard score={snapshot.confidenceScore} />
+          <SnapshotCard index={3} icon={Target} label="Recommended Focus" value={snapshot.recommendedFocus} />
+          <SnapshotCard index={4} icon={Crown} label="Estimated Level" value={snapshot.estimatedLevel} />
+          <ConfidenceCard index={5} score={snapshot.confidenceScore} />
         </div>
       </Section>
 
@@ -143,6 +145,7 @@ export function CoachingReport({
           <SummaryItem icon={Brain} label="Strategic Planning" value={summary.strategicPlanning} />
           <SummaryItem icon={Activity} label="Piece Activity" value={summary.pieceActivity} />
           <SummaryItem icon={ShieldCheck} label="King Safety" value={summary.kingSafety} />
+          <SummaryItem icon={Gauge} label="Decision Making" value={summary.decisionMaking} />
           <SummaryItem icon={Clock} label="Time Management" value={summary.timeManagement} />
         </div>
         {summary.playingStyle && (
