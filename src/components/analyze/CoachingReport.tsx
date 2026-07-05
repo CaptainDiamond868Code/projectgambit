@@ -241,11 +241,13 @@ function SnapshotCard({
   label,
   value,
   tone,
+  index = 0,
 }: {
   icon: LucideIcon;
   label: string;
   value: string;
   tone?: "best" | "mistake";
+  index?: number;
 }) {
   const toneClass =
     tone === "best"
@@ -254,7 +256,10 @@ function SnapshotCard({
         ? "text-cls-mistake"
         : "text-primary";
   return (
-    <div className="rounded-xl border border-border bg-background/40 p-4 transition-colors hover:border-primary/30">
+    <div
+      className="animate-fade-up rounded-xl border border-border bg-background/40 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[var(--shadow-card)]"
+      style={{ animationDelay: `${index * 60}ms` }}
+    >
       <div className={cn("flex items-center gap-2 text-xs font-semibold uppercase tracking-wide", toneClass)}>
         <Icon className="h-3.5 w-3.5" /> {label}
       </div>
@@ -263,10 +268,13 @@ function SnapshotCard({
   );
 }
 
-function ConfidenceCard({ score }: { score: number }) {
+function ConfidenceCard({ score, index = 0 }: { score: number; index?: number }) {
   const clamped = Math.max(0, Math.min(100, Math.round(score)));
   return (
-    <div className="rounded-xl border border-border bg-background/40 p-4">
+    <div
+      className="animate-fade-up rounded-xl border border-border bg-background/40 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[var(--shadow-card)]"
+      style={{ animationDelay: `${index * 60}ms` }}
+    >
       <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-primary">
         <Gauge className="h-3.5 w-3.5" /> Confidence Score
       </div>
