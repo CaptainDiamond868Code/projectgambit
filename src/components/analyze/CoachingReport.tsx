@@ -132,9 +132,22 @@ export function CoachingReport({
             tone="mistake"
           />
           <SnapshotCard index={3} icon={Target} label="Recommended Focus" value={snapshot.recommendedFocus} />
-          <SnapshotCard index={4} icon={Crown} label="Estimated Level" value={snapshot.estimatedLevel} />
-          <ConfidenceCard index={5} score={snapshot.confidenceScore} />
+          <SnapshotCard
+            index={4}
+            icon={Crown}
+            label="Estimated Level"
+            value={`${estimate.label} · ~${estimate.low}–${estimate.high}`}
+          />
+          <ConfidenceCard
+            index={5}
+            score={estimate.confidence}
+            label={estimate.confidenceLabel}
+          />
         </div>
+        <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+          This rating range is estimated by the engine from {estimate.sampleMoves} of your moves in
+          this single game. Analyze more games to sharpen the estimate.
+        </p>
       </Section>
 
       {/* Game summary */}
