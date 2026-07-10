@@ -350,10 +350,13 @@ export function ScoresheetScanner({ onAnalyze }: ScoresheetScannerProps) {
               {validation.allLegal ? (
                 <span className="flex items-center gap-1 text-xs font-medium text-cls-excellent">
                   <CheckCircle2 className="h-3.5 w-3.5" /> Valid — {validation.legalCount} moves
+                  {validation.correctedCount > 0
+                    ? ` (${validation.correctedCount} auto-corrected)`
+                    : ""}
                 </span>
               ) : (
-                <span className="flex items-center gap-1 text-xs font-medium text-cls-blunder">
-                  <AlertTriangle className="h-3.5 w-3.5" /> Fix highlighted moves
+                <span className="flex items-center gap-1 text-xs font-medium text-gold">
+                  <AlertTriangle className="h-3.5 w-3.5" /> Fix the flagged moves
                 </span>
               )}
             </div>
