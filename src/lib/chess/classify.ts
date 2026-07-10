@@ -1,4 +1,4 @@
-import type { Color, Evaluation, GamePhase, MoveClassification } from "./types";
+import type { Color, Evaluation, GamePhase, MoveClassification, PlayerStats } from "./types";
 
 /** Clamp used so that decisive/mate positions don't create absurd CPL values. */
 const EVAL_CAP = 1000;
