@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/collapsible";
 import { ChessBoardView, uciSquares } from "@/components/chess/ChessBoardView";
 import { CLS_META } from "@/components/chess/classification";
-import { resolveOutcome, outcomeLabel } from "@/lib/chess/classify";
+import { resolveOutcome, outcomeLabel, estimatePlayingStrength } from "@/lib/chess/classify";
 import { cn } from "@/lib/utils";
 import type {
   Color,
@@ -58,6 +58,8 @@ export function CoachingReport({
   const playerName = color === "white" ? analysis.meta.white : analysis.meta.black;
   const snapshot = report.playerSnapshot;
   const summary = report.gameSummary;
+  const ownMoveCount = analysis.moves.filter((m) => m.color === color).length;
+  const estimate = estimatePlayingStrength(stats, ownMoveCount);
   const outcome = resolveOutcome(analysis.meta.result, color);
   const outcomeText = outcomeLabel(outcome);
   const outcomeClass =
