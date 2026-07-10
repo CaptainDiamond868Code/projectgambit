@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { analyzeGame, selectKeyMistakes } from "@/lib/chess/analyze";
-import { resolveOutcome } from "@/lib/chess/classify";
+import { resolveOutcome, estimatePlayingStrength } from "@/lib/chess/classify";
 import type { Color, GameAnalysis, GameMeta, KeyMistake, CoachingReport } from "@/lib/chess/types";
 import { generateCoachingReport } from "@/lib/coaching.functions";
 
@@ -52,6 +52,8 @@ export function useGameAnalysis() {
         setState((s) => ({ ...s, status: "coaching", analysis, mistakes }));
 
         const stats = analysis.stats[color];
+        const ownMoveCount = analysis.moves.filter((m) => m.color === color).length;
+        const estimate = estimatePlayingStrength(stats, ownMoveCount);
         const report = await generateCoachingReport({
           data: {
             playerColor: color,
@@ -62,9 +64,13 @@ export function useGameAnalysis() {
             accuracy: stats.accuracy,
             averageCentipawnLoss: stats.averageCentipawnLoss,
             counts: stats.counts,
-            totalMoves: analysis.moves.filter((m) => m.color === color).length,
+            totalMoves: ownMoveCount,
             opening: analysis.meta.opening,
             hasTimeData,
+            estimatedRatingLow: estimate.low,
+            estimatedRatingHigh: estimate.high,
+            estimatedLevelLabel: estimate.label,
+            estimateConfidence: estimate.confidence,
             mistakes: mistakes.map((m) => ({
               moveNumber: m.moveNumber,
               san: m.san,
