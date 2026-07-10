@@ -113,3 +113,107 @@ export const CLASSIFICATION_ORDER: MoveClassification[] = [
   "mistake",
   "blunder",
 ];
+
+/**
+ * Objective, engine-derived estimate of a player's strength for a single game.
+ * This is intentionally deterministic (never AI-guessed) so it stays believable.
+ */
+export interface StrengthEstimate {
+  /** Low end of the estimated rating range (rounded to 50). */
+  low: number;
+  /** High end of the estimated rating range (rounded to 50). */
+  high: number;
+  /** Centre of the range. */
+  centre: number;
+  /** Human label for the centre (e.g. "Intermediate club player"). */
+  label: string;
+  /** 0-100 confidence, capped for a single game. */
+  confidence: number;
+  confidenceLabel: "Low" | "Moderate" | "Good";
+  /** How many of the player's own moves fed the estimate. */
+  sampleMoves: number;
+}
+
+/** Anchor points mapping average centipawn loss → approximate Elo. */
+const ACPL_ANCHORS: Array<[number, number]> = [
+  [5, 2750],
+  [10, 2550],
+  [15, 2350],
+  [20, 2180],
+  [25, 2020],
+  [30, 1880],
+  [40, 1650],
+  [50, 1460],
+  [65, 1260],
+  [80, 1060],
+  [100, 860],
+  [130, 650],
+  [180, 450],
+];
+
+function acplToElo(acpl: number): number {
+  const a = ACPL_ANCHORS;
+  if (acpl <= a[0][0]) return a[0][1];
+  if (acpl >= a[a.length - 1][0]) return a[a.length - 1][1];
+  for (let i = 0; i < a.length - 1; i++) {
+    const [x0, y0] = a[i];
+    const [x1, y1] = a[i + 1];
+    if (acpl >= x0 && acpl <= x1) {
+      const t = (acpl - x0) / (x1 - x0);
+      return y0 + (y1 - y0) * t;
+    }
+  }
+  return 1200;
+}
+
+function levelLabel(elo: number): string {
+  if (elo >= 2400) return "Master-level";
+  if (elo >= 2200) return "Candidate Master";
+  if (elo >= 2000) return "Expert";
+  if (elo >= 1800) return "Advanced club player";
+  if (elo >= 1500) return "Intermediate club player";
+  if (elo >= 1200) return "Developing club player";
+  if (elo >= 900) return "Improving beginner";
+  return "Beginner";
+}
+
+/**
+ * Estimate playing strength from the whole game using several engine signals —
+ * average centipawn loss (primary), blunder/mistake/inaccuracy frequency, and
+ * share of clean moves — rather than any single number. Confidence and range
+ * width scale with sample size and consistency; a single game is capped below
+ * full confidence because one game can't pin down a rating precisely.
+ */
+export function estimatePlayingStrength(
+  stats: PlayerStats,
+  ownMoveCount: number,
+): StrengthEstimate {
+  const acpl = stats.averageCentipawnLoss;
+  const n = Math.max(1, ownMoveCount);
+  const c = stats.counts;
+  const blunderRate = c.blunder / n;
+  const mistakeRate = c.mistake / n;
+  const inaccRate = c.inaccuracy / n;
+  const cleanShare = (c.best + c.excellent) / n;
+
+  let elo = acplToElo(acpl);
+  // Secondary signals nudge the centre so no single stat dominates.
+  elo -= blunderRate * 900;
+  elo -= mistakeRate * 350;
+  elo -= inaccRate * 120;
+  elo += (cleanShare - 0.5) * 300;
+  elo = Math.max(300, Math.min(2800, elo));
+  const centre = Math.round(elo / 50) * 50;
+
+  const sizeConf = Math.min(1, n / 30);
+  const consistency = 1 - Math.min(1, blunderRate * 4 + mistakeRate * 2);
+  let confidence = Math.round((sizeConf * 0.6 + consistency * 0.4) * 75);
+  confidence = Math.max(20, Math.min(80, confidence));
+
+  const width = Math.max(100, Math.round((260 - confidence * 1.8) / 50) * 50);
+  const low = Math.max(300, Math.round((centre - width) / 50) * 50);
+  const high = Math.min(2900, Math.round((centre + width) / 50) * 50);
+  const confidenceLabel = confidence >= 65 ? "Good" : confidence >= 45 ? "Moderate" : "Low";
+
+  return { low, high, centre, label: levelLabel(centre), confidence, confidenceLabel, sampleMoves: n };
+}
