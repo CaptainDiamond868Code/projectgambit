@@ -283,7 +283,15 @@ function SnapshotCard({
   );
 }
 
-function ConfidenceCard({ score, index = 0 }: { score: number; index?: number }) {
+function ConfidenceCard({
+  score,
+  index = 0,
+  label,
+}: {
+  score: number;
+  index?: number;
+  label?: string;
+}) {
   const clamped = Math.max(0, Math.min(100, Math.round(score)));
   return (
     <div
@@ -296,6 +304,7 @@ function ConfidenceCard({ score, index = 0 }: { score: number; index?: number })
       <div className="mt-1.5 flex items-baseline gap-1">
         <span className="text-2xl font-bold tabular-nums text-foreground">{clamped}</span>
         <span className="text-xs text-muted-foreground">/ 100</span>
+        {label && <span className="ml-1 text-xs font-medium text-muted-foreground">· {label}</span>}
       </div>
       <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
         <div
