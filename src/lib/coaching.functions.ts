@@ -33,6 +33,10 @@ const InputSchema = z.object({
   totalMoves: z.number(),
   opening: z.string().optional(),
   hasTimeData: z.boolean().optional(),
+  estimatedRatingLow: z.number().optional(),
+  estimatedRatingHigh: z.number().optional(),
+  estimatedLevelLabel: z.string().optional(),
+  estimateConfidence: z.number().optional(),
   mistakes: z.array(MistakeSchema),
 });
 
@@ -164,7 +168,7 @@ TONE: Always start from what the player did well before addressing weaknesses. E
 
 COACHING VOICE: Never output raw engine phrasing like "Move 15 was a blunder." Instead speak like a human coach: describe the idea the player was going for, why the moment went wrong, and the better plan — e.g. "You spotted an active attacking idea here, but launched it before your pieces were coordinated; finishing development first would have made the attack far stronger." Always be encouraging, constructive, conversational and educational — never insulting or robotic.
 
-ESTIMATES: You may estimate the player's playing style, approximate skill level (as a friendly range, e.g. "Improving beginner (~800-1000)") and a confidence score (0-100) for how clear the read is. Base these on accuracy, centipawn loss and the mix of move classifications — this is a read of the PLAYER, which is allowed, unlike inventing position evaluations.
+ESTIMATES: An objective, engine-based rating estimate for this player is computed separately and passed to you as "estimatedRatingLow", "estimatedRatingHigh", "estimatedLevelLabel" and "estimateConfidence". When these are present you MUST use that exact range and label for "playerSnapshot.estimatedLevel" (format it like "Intermediate club player (~1500-1700)") and set "confidenceScore" to the provided "estimateConfidence". NEVER invent a different rating or contradict this range — it is derived from the whole game's centipawn loss and mistake pattern, which is far more reliable than a guess. Only if these fields are absent may you estimate a friendly range yourself from accuracy, centipawn loss and the move-classification mix.
 
 MISTAKE CARDS: For each mistake produce (1) whatHappened — describe the move and its effect in plain terms; (2) whyItHappened — the likely thinking trap behind it; (3) betterPlan — the improvement, using the provided bestMoveSan/bestLineSan; (4) keyLesson — a short takeaway; (5) patternCategory — a 1-3 word label such as "Premature Attack", "Loose Piece", "Missed Tactic", "King Safety", "Passive Piece", "Pawn Weakness".
 
@@ -190,6 +194,9 @@ function buildUserPrompt(input: CoachingInput): string {
     input.hasTimeData
       ? "Clock/time data IS available for this game; comment on time management accordingly."
       : "No clock/time data is available; note that pacing could not be measured and give general time-management guidance.",
+    input.estimatedRatingLow != null && input.estimatedRatingHigh != null
+      ? `The engine-based rating estimate for this player is approximately ${input.estimatedRatingLow}-${input.estimatedRatingHigh} (${input.estimatedLevelLabel ?? ""}), confidence ${input.estimateConfidence ?? ""}/100. Use this exact range and label for "playerSnapshot.estimatedLevel" and set "confidenceScore" to this confidence. Do not contradict it anywhere.`
+      : "No precomputed rating estimate was provided; estimate a friendly range yourself.",
     'The "playerSnapshot" fields must be short (a few words each), while "gameSummary" and mistake fields can be 1-2 sentences.',
   ].join("\n");
 }

@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/collapsible";
 import { ChessBoardView, uciSquares } from "@/components/chess/ChessBoardView";
 import { CLS_META } from "@/components/chess/classification";
-import { resolveOutcome, outcomeLabel } from "@/lib/chess/classify";
+import { resolveOutcome, outcomeLabel, estimatePlayingStrength } from "@/lib/chess/classify";
 import { cn } from "@/lib/utils";
 import type {
   Color,
@@ -58,6 +58,8 @@ export function CoachingReport({
   const playerName = color === "white" ? analysis.meta.white : analysis.meta.black;
   const snapshot = report.playerSnapshot;
   const summary = report.gameSummary;
+  const ownMoveCount = analysis.moves.filter((m) => m.color === color).length;
+  const estimate = estimatePlayingStrength(stats, ownMoveCount);
   const outcome = resolveOutcome(analysis.meta.result, color);
   const outcomeText = outcomeLabel(outcome);
   const outcomeClass =
@@ -130,9 +132,22 @@ export function CoachingReport({
             tone="mistake"
           />
           <SnapshotCard index={3} icon={Target} label="Recommended Focus" value={snapshot.recommendedFocus} />
-          <SnapshotCard index={4} icon={Crown} label="Estimated Level" value={snapshot.estimatedLevel} />
-          <ConfidenceCard index={5} score={snapshot.confidenceScore} />
+          <SnapshotCard
+            index={4}
+            icon={Crown}
+            label="Estimated Level"
+            value={`${estimate.label} · ~${estimate.low}–${estimate.high}`}
+          />
+          <ConfidenceCard
+            index={5}
+            score={estimate.confidence}
+            label={estimate.confidenceLabel}
+          />
         </div>
+        <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+          This rating range is estimated by the engine from {estimate.sampleMoves} of your moves in
+          this single game. Analyze more games to sharpen the estimate.
+        </p>
       </Section>
 
       {/* Game summary */}
@@ -268,7 +283,15 @@ function SnapshotCard({
   );
 }
 
-function ConfidenceCard({ score, index = 0 }: { score: number; index?: number }) {
+function ConfidenceCard({
+  score,
+  index = 0,
+  label,
+}: {
+  score: number;
+  index?: number;
+  label?: string;
+}) {
   const clamped = Math.max(0, Math.min(100, Math.round(score)));
   return (
     <div
@@ -281,6 +304,7 @@ function ConfidenceCard({ score, index = 0 }: { score: number; index?: number })
       <div className="mt-1.5 flex items-baseline gap-1">
         <span className="text-2xl font-bold tabular-nums text-foreground">{clamped}</span>
         <span className="text-xs text-muted-foreground">/ 100</span>
+        {label && <span className="ml-1 text-xs font-medium text-muted-foreground">· {label}</span>}
       </div>
       <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
         <div
@@ -397,7 +421,7 @@ function MistakeCard({
         />
       </CollapsibleTrigger>
 
-      <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
+      <CollapsibleContent className="overflow-hidden data-[state=open]:overflow-visible data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
         <div className="grid gap-5 border-t border-border/60 p-4 md:grid-cols-[220px_1fr]">
           <div>
             <ChessBoardView

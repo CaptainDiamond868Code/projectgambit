@@ -229,11 +229,27 @@ export function ScoresheetScanner({ onAnalyze }: ScoresheetScannerProps) {
           <div className="mt-2 flex items-start gap-2 rounded-lg border border-primary/25 bg-primary/5 p-3 text-xs text-muted-foreground">
             <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
             <span>
-              OCR isn't perfect. Illegal or uncertain moves are highlighted in red — fix them
-              before analyzing. Everything after the first illegal move can't be checked until
-              it's corrected.
+              We read your notation against the real position. Imperfect but clear moves (like
+              "ed5" or "dc") are auto-corrected and shown with a{" "}
+              <span className="font-medium text-cls-good">→</span> hint. Only moves we genuinely
+              can't place are flagged for you to fix.
             </span>
           </div>
+
+          {(validation.correctedCount > 0 || validation.issueCount > 0) && (
+            <div className="mt-3 flex flex-wrap gap-2 text-xs">
+              {validation.correctedCount > 0 && (
+                <span className="rounded-full border border-cls-good/40 bg-cls-good/10 px-2.5 py-1 font-medium text-cls-good">
+                  {validation.correctedCount} auto-corrected
+                </span>
+              )}
+              {validation.issueCount > 0 && (
+                <span className="rounded-full border border-gold/40 bg-gold/10 px-2.5 py-1 font-medium text-gold">
+                  {validation.issueCount} need{validation.issueCount === 1 ? "s" : ""} your attention
+                </span>
+              )}
+            </div>
+          )}
 
           <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
             {validation.entries.map((entry, i) => (
@@ -241,23 +257,37 @@ export function ScoresheetScanner({ onAnalyze }: ScoresheetScannerProps) {
                 key={i}
                 className={cn(
                   "flex items-center gap-1.5 rounded-lg border bg-background/40 px-2 py-1.5",
-                  entry.legal
-                    ? "border-border"
-                    : "border-cls-blunder/50 bg-cls-blunder/10",
+                  entry.status === "illegal" && "border-cls-blunder/50 bg-cls-blunder/10",
+                  entry.status === "ambiguous" && "border-gold/50 bg-gold/10",
+                  entry.status === "corrected" && "border-cls-good/40 bg-cls-good/5",
+                  entry.status === "unchecked" && "border-border/40 opacity-70",
+                  entry.status === "legal" && "border-border",
                 )}
               >
                 <span className="w-8 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
                   {entry.color === "white" ? `${entry.moveNumber}.` : ""}
                 </span>
-                <input
-                  value={entry.san}
-                  onChange={(e) => editMove(i, e.target.value)}
-                  spellCheck={false}
-                  className={cn(
-                    "w-full min-w-0 rounded bg-transparent px-1 py-0.5 font-mono text-sm outline-none focus:bg-secondary/40",
-                    entry.legal ? "text-foreground" : "text-cls-blunder",
+                <div className="min-w-0 flex-1">
+                  <input
+                    value={entry.raw}
+                    onChange={(e) => editMove(i, e.target.value)}
+                    spellCheck={false}
+                    className={cn(
+                      "w-full min-w-0 rounded bg-transparent px-1 py-0.5 font-mono text-sm outline-none focus:bg-secondary/40",
+                      entry.status === "illegal" && "text-cls-blunder",
+                      entry.status === "ambiguous" && "text-gold",
+                      (entry.status === "legal" ||
+                        entry.status === "corrected" ||
+                        entry.status === "unchecked") &&
+                        "text-foreground",
+                    )}
+                  />
+                  {entry.corrected && (
+                    <span className="block px-1 font-mono text-[11px] text-cls-good">
+                      → {entry.san.replace(/[+#]/g, "")}
+                    </span>
                   )}
-                />
+                </div>
                 <button
                   onClick={() => removeMove(i)}
                   className="shrink-0 text-muted-foreground/60 transition-colors hover:text-foreground"
@@ -268,6 +298,44 @@ export function ScoresheetScanner({ onAnalyze }: ScoresheetScannerProps) {
               </div>
             ))}
           </div>
+
+          {/* Only the moves that genuinely need a decision */}
+          {validation.entries.some(
+            (e) => e.status === "ambiguous" || e.status === "illegal",
+          ) && (
+            <div className="mt-4 space-y-2 rounded-xl border border-gold/30 bg-gold/5 p-3">
+              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gold">
+                <AlertTriangle className="h-3.5 w-3.5" /> Needs your attention
+              </div>
+              {validation.entries.map((entry, i) =>
+                entry.status === "ambiguous" || entry.status === "illegal" ? (
+                  <div key={i} className="text-xs">
+                    <span className="text-muted-foreground">
+                      Move {entry.moveNumber}
+                      {entry.color === "black" ? "…" : "."}{" "}
+                    </span>
+                    <span className="font-mono font-medium text-foreground">
+                      "{entry.raw || "—"}"
+                    </span>{" "}
+                    <span className="text-muted-foreground">{entry.note}</span>
+                    {entry.status === "ambiguous" && entry.candidates && (
+                      <div className="mt-1 flex flex-wrap gap-1.5">
+                        {entry.candidates.map((cand) => (
+                          <button
+                            key={cand}
+                            onClick={() => editMove(i, cand)}
+                            className="rounded-md border border-border bg-background/60 px-2 py-0.5 font-mono text-xs text-foreground transition-colors hover:border-primary/50 hover:text-primary"
+                          >
+                            {cand}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : null,
+              )}
+            </div>
+          )}
 
           <Button variant="outline" size="sm" className="mt-3" onClick={addMove}>
             + Add move
@@ -282,10 +350,13 @@ export function ScoresheetScanner({ onAnalyze }: ScoresheetScannerProps) {
               {validation.allLegal ? (
                 <span className="flex items-center gap-1 text-xs font-medium text-cls-excellent">
                   <CheckCircle2 className="h-3.5 w-3.5" /> Valid — {validation.legalCount} moves
+                  {validation.correctedCount > 0
+                    ? ` (${validation.correctedCount} auto-corrected)`
+                    : ""}
                 </span>
               ) : (
-                <span className="flex items-center gap-1 text-xs font-medium text-cls-blunder">
-                  <AlertTriangle className="h-3.5 w-3.5" /> Fix highlighted moves
+                <span className="flex items-center gap-1 text-xs font-medium text-gold">
+                  <AlertTriangle className="h-3.5 w-3.5" /> Fix the flagged moves
                 </span>
               )}
             </div>
