@@ -421,7 +421,7 @@ function MistakeCard({
         />
       </CollapsibleTrigger>
 
-      <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
+      <CollapsibleContent className="overflow-hidden data-[state=open]:overflow-visible data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
         <div className="grid gap-5 border-t border-border/60 p-4 md:grid-cols-[220px_1fr]">
           <div>
             <ChessBoardView
