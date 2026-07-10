@@ -33,6 +33,10 @@ const InputSchema = z.object({
   totalMoves: z.number(),
   opening: z.string().optional(),
   hasTimeData: z.boolean().optional(),
+  estimatedRatingLow: z.number().optional(),
+  estimatedRatingHigh: z.number().optional(),
+  estimatedLevelLabel: z.string().optional(),
+  estimateConfidence: z.number().optional(),
   mistakes: z.array(MistakeSchema),
 });
 
