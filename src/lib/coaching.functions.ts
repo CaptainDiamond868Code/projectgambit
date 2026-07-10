@@ -194,6 +194,9 @@ function buildUserPrompt(input: CoachingInput): string {
     input.hasTimeData
       ? "Clock/time data IS available for this game; comment on time management accordingly."
       : "No clock/time data is available; note that pacing could not be measured and give general time-management guidance.",
+    input.estimatedRatingLow != null && input.estimatedRatingHigh != null
+      ? `The engine-based rating estimate for this player is approximately ${input.estimatedRatingLow}-${input.estimatedRatingHigh} (${input.estimatedLevelLabel ?? ""}), confidence ${input.estimateConfidence ?? ""}/100. Use this exact range and label for "playerSnapshot.estimatedLevel" and set "confidenceScore" to this confidence. Do not contradict it anywhere.`
+      : "No precomputed rating estimate was provided; estimate a friendly range yourself.",
     'The "playerSnapshot" fields must be short (a few words each), while "gameSummary" and mistake fields can be 1-2 sentences.',
   ].join("\n");
 }
