@@ -421,8 +421,8 @@ function MistakeCard({
         />
       </CollapsibleTrigger>
 
-      <CollapsibleContent>
-        <div className="grid gap-5 border-t border-border/60 p-4 md:grid-cols-[220px_1fr]">
+      <CollapsibleContent className="overflow-visible">
+        <div className="grid gap-5 border-t border-border/60 p-4 pb-6 md:grid-cols-[220px_1fr]">
           <div>
             <ChessBoardView
               id={`mistake-${index}`}
