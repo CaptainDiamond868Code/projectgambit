@@ -385,7 +385,7 @@ function MistakeCard({
       open={open}
       onOpenChange={setOpen}
       style={{ animationDelay: `${index * 80}ms` }}
-      className="animate-fade-up rounded-2xl border border-border bg-card/40 transition-all duration-200 hover:border-primary/25 hover:shadow-[var(--shadow-card)]"
+      className="animate-fade-up h-auto overflow-visible rounded-2xl border border-border bg-card/40 transition-all duration-200 hover:border-primary/25 hover:shadow-[var(--shadow-card)]"
     >
       <CollapsibleTrigger className="flex w-full items-center gap-3 p-4 text-left">
         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-bold">
