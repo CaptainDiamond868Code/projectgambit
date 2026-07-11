@@ -196,14 +196,15 @@ export function estimatePlayingStrength(
   const inaccRate = c.inaccuracy / n;
   const cleanShare = (c.best + c.excellent) / n;
 
-  let elo = acplToElo(acpl);
-  // Secondary signals nudge the centre so no single stat dominates.
-  elo -= blunderRate * 250;
-  elo -= mistakeRate * 100;
-  elo -= inaccRate * 40;
-  elo += (cleanShare - 0.5) * 120;
-  elo = Math.max(300, Math.min(2800, elo));
-  const centre = Math.round(elo / 50) * 50;
+const baseElo = acplToElo(acpl);
+const secondaryNudge =
+  -(blunderRate * 100) -
+  (mistakeRate * 40) -
+  (inaccRate * 15) +
+  (cleanShare - 0.5) * 60;
+const clampedNudge = Math.max(-150, Math.min(100, secondaryNudge));
+let elo = Math.max(300, Math.min(2800, baseElo + clampedNudge));
+const centre = Math.round(elo / 50) * 50;
 
   const sizeConf = Math.min(1, n / 30);
   const consistency = 1 - Math.min(1, blunderRate * 4 + mistakeRate * 2);
