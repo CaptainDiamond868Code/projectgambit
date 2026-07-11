@@ -113,7 +113,16 @@ export async function analyzeGame(
 
     const before = evalToNumber(evalBefore);
     const after = evalToNumber(evalAfter);
-    const cpl = centipawnLoss(color, before, after);
+    let cpl = centipawnLoss(color, before, after);
+    
+    // If the player had a forced mate and is still clearly winning after,
+    // the CPL is artificial — EVAL_CAP creates fake loss when transitioning
+    // from a mate score to a large centipawn advantage.
+    const hadMate = evalBefore.mate != null && (color === "white" ? evalBefore.mate > 0 : evalBefore.mate < 0);
+    const stillWinning = color === "white" ? after > 200 : after < -200;
+    if (hadMate && stillWinning) {
+      cpl = 0;
+    }
 
     const playedUci = `${move.from}${move.to}${move.promotion ?? ""}`;
     const bestUci = evalBefore.bestMove;
