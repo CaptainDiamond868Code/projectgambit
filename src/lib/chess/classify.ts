@@ -170,9 +170,9 @@ function levelLabel(elo: number): string {
   if (elo >= 2400) return "Master-level";
   if (elo >= 2200) return "Candidate Master";
   if (elo >= 2000) return "Expert";
-  if (elo >= 1800) return "Advanced club player";
-  if (elo >= 1500) return "Intermediate club player";
-  if (elo >= 1200) return "Developing club player";
+  if (elo >= 1800) return "Advanced player";
+  if (elo >= 1500) return "Intermediate player";
+  if (elo >= 1200) return "Developing player";
   if (elo >= 900) return "Improving beginner";
   return "Beginner";
 }
@@ -198,10 +198,10 @@ export function estimatePlayingStrength(
 
   let elo = acplToElo(acpl);
   // Secondary signals nudge the centre so no single stat dominates.
-  elo -= blunderRate * 900;
-  elo -= mistakeRate * 350;
-  elo -= inaccRate * 120;
-  elo += (cleanShare - 0.5) * 300;
+  elo -= blunderRate * 250;
+  elo -= mistakeRate * 100;
+  elo -= inaccRate * 40;
+  elo += (cleanShare - 0.5) * 120;
   elo = Math.max(300, Math.min(2800, elo));
   const centre = Math.round(elo / 50) * 50;
 
