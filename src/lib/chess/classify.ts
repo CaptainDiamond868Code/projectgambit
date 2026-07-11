@@ -136,19 +136,18 @@ export interface StrengthEstimate {
 
 /** Anchor points mapping average centipawn loss → approximate Elo. */
 const ACPL_ANCHORS: Array<[number, number]> = [
-  [5, 2750],
-  [10, 2550],
-  [15, 2350],
-  [20, 2180],
-  [25, 2020],
-  [30, 1880],
-  [40, 1650],
-  [50, 1460],
-  [65, 1260],
-  [80, 1060],
-  [100, 860],
-  [130, 650],
-  [180, 450],
+  [3,   2800],
+  [8,   2650],
+  [14,  2500],
+  [22,  2350],
+  [32,  2200],
+  [44,  2000],
+  [58,  1750],
+  [76,  1500],
+  [100, 1250],
+  [135, 1050],
+  [180, 850],
+  [250, 650],
 ];
 
 function acplToElo(acpl: number): number {
@@ -196,15 +195,15 @@ export function estimatePlayingStrength(
   const inaccRate = c.inaccuracy / n;
   const cleanShare = (c.best + c.excellent) / n;
 
-const baseElo = acplToElo(acpl);
-const secondaryNudge =
-  -(blunderRate * 100) -
-  (mistakeRate * 40) -
-  (inaccRate * 15) +
-  (cleanShare - 0.5) * 60;
-const clampedNudge = Math.max(-150, Math.min(100, secondaryNudge));
-let elo = Math.max(300, Math.min(2800, baseElo + clampedNudge));
-const centre = Math.round(elo / 50) * 50;
+  const baseElo = acplToElo(acpl);
+  const secondaryNudge =
+    -(blunderRate * 50) -
+    (mistakeRate * 20) -
+    (inaccRate * 5) +
+    (cleanShare - 0.5) * 30;
+  const clampedNudge = Math.max(-75, Math.min(50, secondaryNudge));
+  let elo = Math.max(300, Math.min(2800, baseElo + clampedNudge));
+  const centre = Math.round(elo / 50) * 50;
 
   const sizeConf = Math.min(1, n / 30);
   const consistency = 1 - Math.min(1, blunderRate * 4 + mistakeRate * 2);
