@@ -385,7 +385,7 @@ function MistakeCard({
       open={open}
       onOpenChange={setOpen}
       style={{ animationDelay: `${index * 80}ms` }}
-      className="animate-fade-up overflow-hidden rounded-2xl border border-border bg-card/40 transition-all duration-200 hover:border-primary/25 hover:shadow-[var(--shadow-card)]"
+      className="animate-fade-up rounded-2xl border border-border bg-card/40 transition-all duration-200 hover:border-primary/25 hover:shadow-[var(--shadow-card)]"
     >
       <CollapsibleTrigger className="flex w-full items-center gap-3 p-4 text-left">
         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-bold">
@@ -421,7 +421,7 @@ function MistakeCard({
         />
       </CollapsibleTrigger>
 
-      <CollapsibleContent className="overflow-hidden data-[state=open]:overflow-visible data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
+      <CollapsibleContent>
         <div className="grid gap-5 border-t border-border/60 p-4 md:grid-cols-[220px_1fr]">
           <div>
             <ChessBoardView

@@ -153,6 +153,17 @@ function interpret(chess: Chess, raw: string): Interpretation {
     matches = legal.filter((m) => m.to === tLower);
   }
 
+  // Final fallback: the OCR may have misread or added a stray piece letter but
+  // still captured the destination square (e.g. "Rf3" when only Nf3 reaches f3,
+  // or "Ncd4" mangled). If the token ends in a square and exactly one legal
+  // move lands there, an experienced reader would accept it — so do we.
+  if (matches.length === 0) {
+    const dest = tLower.match(/([a-h][1-8])$/);
+    if (dest) {
+      matches = legal.filter((m) => m.to === dest[1]);
+    }
+  }
+
   const uniq = Array.from(new Map(matches.map((m) => [m.san, m])).values());
   if (uniq.length === 1) {
     const m = uniq[0];

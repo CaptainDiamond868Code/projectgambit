@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { CLS_META } from "@/components/chess/classification";
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { AnalyzedMove } from "@/lib/chess/types";
 
 interface MoveListProps {
@@ -21,10 +22,29 @@ export function MoveList({ moves, activeIndex, onSelect }: MoveListProps) {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef<HTMLButtonElement>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
-    activeRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-  }, [activeIndex]);
+    // On mobile the moves panel sits below the board, so auto-scrolling the
+    // active move into view drags the whole page down and hides the board.
+    // Keep the board in view on mobile; only auto-scroll on desktop, where the
+    // moves list is a side panel with its own scroll region.
+    if (isMobile) return;
+    const active = activeRef.current;
+    const container = containerRef.current;
+    if (!active || !container) return;
+    // Scroll within the moves container only — never the page/window.
+    const activeTop = active.offsetTop - container.offsetTop;
+    const activeBottom = activeTop + active.offsetHeight;
+    if (activeTop < container.scrollTop) {
+      container.scrollTo({ top: activeTop, behavior: "smooth" });
+    } else if (activeBottom > container.scrollTop + container.clientHeight) {
+      container.scrollTo({
+        top: activeBottom - container.clientHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [activeIndex, isMobile]);
 
   if (moves.length === 0) {
     return (
