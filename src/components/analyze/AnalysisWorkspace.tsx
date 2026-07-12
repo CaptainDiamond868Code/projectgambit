@@ -79,8 +79,8 @@ export function AnalysisWorkspace() {
           <AlertTriangle className="mx-auto h-8 w-8 text-cls-blunder" />
           <h3 className="mt-3 text-lg font-semibold">Analysis failed</h3>
           <p className="mt-1 text-sm text-muted-foreground">{state.error}</p>
-          <Button variant="outline" className="mt-4" onClick={reset}>
-            <RotateCcw className="h-4 w-4" /> Try again
+          <Button variant="outline" size="sm" onClick={() => { reset(); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
+            <RotateCcw className="h-4 w-4" /> Analyze new game
           </Button>
         </div>
       </div>
