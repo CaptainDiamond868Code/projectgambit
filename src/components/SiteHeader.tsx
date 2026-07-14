@@ -1,7 +1,10 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 
 export function SiteHeader() {
+  const location = useLocation();
+  const onAnalyzePage = location.pathname === "/analyze";
+
   return (
     <header className="sticky top-0 z-30 border-b border-border/60 bg-background/70 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
@@ -11,9 +14,19 @@ export function SiteHeader() {
           </span>
           Project Gambit
         </Link>
-        <Button asChild variant="hero" size="sm">
-          <Link to="/analyze">Analyze My Game</Link>
-        </Button>
+        {onAnalyzePage ? (
+          <Button
+            variant="hero"
+            size="sm"
+            onClick={() => window.location.reload()}
+          >
+            Analyze My Game
+          </Button>
+        ) : (
+          <Button asChild variant="hero" size="sm">
+            <Link to="/analyze">Analyze My Game</Link>
+          </Button>
+        )}
       </div>
     </header>
   );
