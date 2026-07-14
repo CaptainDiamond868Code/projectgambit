@@ -99,13 +99,13 @@ export function AnalysisWorkspace() {
 
       {state.analysis && state.report && (
         <CoachingReport
-  report={state.report}
-  analysis={state.analysis}
-  mistakes={state.mistakes}
-  color={state.color}
-  onJumpToMistake={jumpTo}
-  onReset={reset}
-/>
+          report={state.report}
+          analysis={state.analysis}
+          mistakes={state.mistakes}
+          color={state.color}
+          onJumpToMistake={jumpTo}
+          onReset={reset}
+        />
       )}
 
       {state.analysis && (
