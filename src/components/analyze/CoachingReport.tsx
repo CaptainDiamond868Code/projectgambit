@@ -89,7 +89,7 @@ export function CoachingReport({
       estimated_rating_low: estimate.low,
       estimated_rating_high: estimate.high,
       opening: analysis.meta.opening ?? null,
-      coaching_report: report,
+      coaching_report: report as unknown as Record<string, unknown>,
     });
     if (error) {
       setSaveState("idle");
