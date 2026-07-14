@@ -78,7 +78,7 @@ export function CoachingReport({
   const onSave = async () => {
     if (!session) return;
     setSaveState("saving");
-    const { error } = await supabase.from("saved_games").insert({
+    const payload = {
       user_id: session.user.id,
       pgn,
       player_color: color,
@@ -89,8 +89,10 @@ export function CoachingReport({
       estimated_rating_low: estimate.low,
       estimated_rating_high: estimate.high,
       opening: analysis.meta.opening ?? null,
-      coaching_report: report as unknown as Record<string, unknown>,
-    });
+      coaching_report: report,
+    };
+    // Cast: coaching_report is jsonb; Supabase types require the Json alias but the shape is JSON-safe.
+    const { error } = await supabase.from("saved_games").insert(payload as never);
     if (error) {
       setSaveState("idle");
       toast.error(error.message);
