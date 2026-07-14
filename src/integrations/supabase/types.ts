@@ -14,7 +14,80 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          username: string | null
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          username?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      saved_games: {
+        Row: {
+          accuracy: number | null
+          analyzed_at: string
+          avg_cp_loss: number | null
+          coaching_report: Json | null
+          estimated_rating_high: number | null
+          estimated_rating_low: number | null
+          id: string
+          move_counts: Json
+          opening: string | null
+          pgn: string
+          player_color: string
+          result: string | null
+          user_id: string
+        }
+        Insert: {
+          accuracy?: number | null
+          analyzed_at?: string
+          avg_cp_loss?: number | null
+          coaching_report?: Json | null
+          estimated_rating_high?: number | null
+          estimated_rating_low?: number | null
+          id?: string
+          move_counts?: Json
+          opening?: string | null
+          pgn: string
+          player_color: string
+          result?: string | null
+          user_id: string
+        }
+        Update: {
+          accuracy?: number | null
+          analyzed_at?: string
+          avg_cp_loss?: number | null
+          coaching_report?: Json | null
+          estimated_rating_high?: number | null
+          estimated_rating_low?: number | null
+          id?: string
+          move_counts?: Json
+          opening?: string | null
+          pgn?: string
+          player_color?: string
+          result?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_games_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
