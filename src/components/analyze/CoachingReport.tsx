@@ -103,6 +103,7 @@ export function CoachingReport({
     Analyze new game
   </Button>
 </div>
+</div>
 
         <div className="mt-5 flex flex-wrap gap-2">
           {(["best", "excellent", "good", "inaccuracy", "mistake", "blunder"] as const).map((c) => (
