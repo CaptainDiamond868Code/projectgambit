@@ -45,6 +45,7 @@ interface CoachingReportProps {
   mistakes: KeyMistake[];
   color: Color;
   onJumpToMistake: (ply: number) => void;
+  onReset: () => void;
 }
 
 export function CoachingReport({
@@ -53,6 +54,7 @@ export function CoachingReport({
   mistakes,
   color,
   onJumpToMistake,
+  onReset,
 }: CoachingReportProps) {
   const stats = analysis.stats[color];
   const playerName = color === "white" ? analysis.meta.white : analysis.meta.black;
@@ -94,11 +96,13 @@ export function CoachingReport({
               {analysis.meta.opening ? <span>· {analysis.meta.opening}</span> : null}
             </p>
           </div>
-          <div className="flex gap-3">
-            <Metric label="Accuracy" value={`${stats.accuracy}%`} highlight />
-            <Metric label="Avg. CP loss" value={String(stats.averageCentipawnLoss)} />
-          </div>
-        </div>
+          <div className="flex flex-wrap items-center gap-3">
+  <Metric label="Accuracy" value={`${stats.accuracy}%`} highlight />
+  <Metric label="Avg. CP loss" value={String(stats.averageCentipawnLoss)} />
+  <Button variant="default" size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => { onReset(); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
+    Analyze new game
+  </Button>
+</div>
 
         <div className="mt-5 flex flex-wrap gap-2">
           {(["best", "excellent", "good", "inaccuracy", "mistake", "blunder"] as const).map((c) => (
