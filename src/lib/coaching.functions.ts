@@ -33,6 +33,7 @@ const InputSchema = z.object({
   }),
   totalMoves: z.number(),
   opening: z.string().optional(),
+  firstMoves: z.array(z.string()).optional(),
   hasTimeData: z.boolean().optional(),
   estimatedRatingLow: z.number().optional(),
   estimatedRatingHigh: z.number().optional(),
@@ -47,6 +48,7 @@ const RESPONSE_SCHEMA = {
   type: "object",
   additionalProperties: false,
   properties: {
+    opening: { type: "string" },
     playerSnapshot: {
       type: "object",
       additionalProperties: false,
@@ -141,6 +143,7 @@ const RESPONSE_SCHEMA = {
     },
   },
   required: [
+    "opening",
     "playerSnapshot",
     "gameSummary",
     "biggestStrength",
@@ -158,6 +161,8 @@ ABSOLUTE RULES — these are non-negotiable:
 - If you reference a better move, use exactly the bestMoveSan / bestLineSan provided. Do not guess alternatives.
 - Translate the engine numbers into plain-English chess concepts (development, king safety, hanging pieces, pawn structure, tactics, activity, endgame technique). Teach the idea; do not just restate the engine move.
 - Address the player directly as "you". Be encouraging, educational and conversational. Keep every field to 1-3 sentences unless noted.
+
+OPENING DETECTION: You will be given the first moves of the game. Identify the most specific opening and variation name possible based on those moves. Use standard chess opening names (e.g. "Sicilian Najdorf", "Ruy López Berlin Defense", "King's Indian Defense — Sämisch Variation", "Queen's Gambit Declined — Orthodox Defense"). Be as specific as possible — name the variation, not just the family. If the opening is truly unrecognizable or the game starts with unusual moves, return "Unknown Opening". Return this as the top-level "opening" field.
 
 GAME RESULT — CRITICAL: The field "playerOutcome" tells you exactly how the game ended for the player you are coaching: "win", "loss", "draw", or "unknown".
 - NEVER assume the player lost. Use "playerOutcome" as the single source of truth for the result.
@@ -189,6 +194,9 @@ function buildUserPrompt(input: CoachingInput): string {
     `Provide exactly ${input.mistakes.length} entries in "mistakes", in the same order as the input mistakes array.`,
     'For "biggestStrength" identify one thing the numbers show the player did consistently well (e.g. low blunder count, accurate opening, few inaccuracies).',
     'For "biggestWeakness" identify the single recurring theme behind the mistakes.',
+    input.firstMoves?.length
+      ? `The first moves of the game were: ${input.firstMoves.join(" ")}. Identify the specific opening and variation played (e.g. "Sicilian Najdorf", "Ruy López Berlin Defense", "King's Indian Defense — Sämisch Variation"). Be as specific as possible — name the variation, not just the family. If truly unrecognizable, return "Unknown Opening". Return this as the top-level "opening" field.`
+      : 'Return "Unknown Opening" for the top-level "opening" field.',
     input.playerOutcome === "unknown"
       ? "The game result is UNKNOWN — do not mention or imply who won or lost anywhere in the report."
       : `The player's result in this game was a ${input.playerOutcome.toUpperCase()}. Keep every reference to the result consistent with this and never assume a loss.`,
