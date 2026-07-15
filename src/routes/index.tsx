@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/components/SiteHeader";
+import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -86,6 +87,7 @@ const FAQ = [
 ];
 
 function Index() {
+  const { session } = useAuth();
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
@@ -103,12 +105,17 @@ function Index() {
             Project Gambit reviews your games like a real chess coach, helping you understand your
             mistakes and build a personalized improvement plan.
           </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <div className="mt-8 flex flex-col items-center justify-center gap-3">
             <Button asChild variant="hero" size="xl">
               <Link to="/analyze">
                 Analyze My Game <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
+            {!session && (
+              <Button asChild variant="outline" size="lg">
+                <Link to="/login">Sign in / Sign up</Link>
+              </Button>
+            )}
           </div>
           <p className="mt-4 text-sm text-muted-foreground">Play a game → Upload it → Learn from it → Improve.</p>
         </div>

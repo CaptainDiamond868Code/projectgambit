@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { LogOut, User as UserIcon, Library } from "lucide-react";
+import { LogOut, User as UserIcon, Library, Settings as SettingsIcon, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,11 +11,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
 
 export function SiteHeader() {
   const location = useLocation();
   const navigate = useNavigate();
   const { session, username, user, signOut } = useAuth();
+  const { theme, toggle } = useTheme();
   const onAnalyzePage = location.pathname === "/analyze";
   const displayName = username ?? user?.email?.split("@")[0] ?? "";
   const initial = (displayName || "U").slice(0, 1).toUpperCase();
@@ -30,6 +32,15 @@ export function SiteHeader() {
           Project Gambit
         </Link>
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggle}
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </Button>
           {onAnalyzePage ? (
             <Button
               variant="hero"
@@ -64,6 +75,11 @@ export function SiteHeader() {
                     <Library className="h-4 w-4" /> My Games
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/settings">
+                    <SettingsIcon className="h-4 w-4" /> Settings
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={async () => {
                     await signOut();
@@ -77,7 +93,7 @@ export function SiteHeader() {
           ) : (
             <Button asChild variant="outline" size="sm">
               <Link to="/login">
-                <UserIcon className="h-4 w-4" /> Sign in
+                <UserIcon className="h-4 w-4" /> Sign in / Sign up
               </Link>
             </Button>
           )}
