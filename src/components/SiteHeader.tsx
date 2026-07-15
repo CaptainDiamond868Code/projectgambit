@@ -1,9 +1,24 @@
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { LogOut, User as UserIcon, Library } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useAuth } from "@/hooks/useAuth";
 
 export function SiteHeader() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { session, username, user, signOut } = useAuth();
   const onAnalyzePage = location.pathname === "/analyze";
+  const displayName = username ?? user?.email?.split("@")[0] ?? "";
+  const initial = (displayName || "U").slice(0, 1).toUpperCase();
 
   return (
     <header className="sticky top-0 z-30 border-b border-border/60 bg-background/70 backdrop-blur-xl">
@@ -14,19 +29,59 @@ export function SiteHeader() {
           </span>
           Project Gambit
         </Link>
-        {onAnalyzePage ? (
-          <Button
-            variant="hero"
-            size="sm"
-            onClick={() => window.location.reload()}
-          >
-            Analyze My Game
-          </Button>
-        ) : (
-          <Button asChild variant="hero" size="sm">
-            <Link to="/analyze">Analyze My Game</Link>
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {onAnalyzePage ? (
+            <Button
+              variant="hero"
+              size="sm"
+              onClick={() => window.location.reload()}
+            >
+              Analyze My Game
+            </Button>
+          ) : (
+            <Button asChild variant="hero" size="sm">
+              <Link to="/analyze">Analyze My Game</Link>
+            </Button>
+          )}
+          {session ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full" aria-label="Account menu">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="bg-primary/15 text-xs font-semibold text-primary">
+                      {initial}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuLabel className="truncate">
+                  {displayName || "Signed in"}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/games">
+                    <Library className="h-4 w-4" /> My Games
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={async () => {
+                    await signOut();
+                    navigate({ to: "/" });
+                  }}
+                >
+                  <LogOut className="h-4 w-4" /> Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button asChild variant="outline" size="sm">
+              <Link to="/login">
+                <UserIcon className="h-4 w-4" /> Sign in
+              </Link>
+            </Button>
+          )}
+        </div>
       </div>
     </header>
   );

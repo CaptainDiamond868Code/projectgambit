@@ -103,6 +103,7 @@ export function AnalysisWorkspace() {
           analysis={state.analysis}
           mistakes={state.mistakes}
           color={state.color}
+          pgn={state.pgn ?? ""}
           onJumpToMistake={jumpTo}
           onReset={reset}
         />

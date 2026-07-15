@@ -20,9 +20,15 @@ import {
   Lightbulb,
   Repeat,
   Timer,
+  Bookmark,
+  Check,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { Link } from "@tanstack/react-router";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Collapsible,
   CollapsibleContent,
@@ -44,6 +50,7 @@ interface CoachingReportProps {
   analysis: GameAnalysis;
   mistakes: KeyMistake[];
   color: Color;
+  pgn: string;
   onJumpToMistake: (ply: number) => void;
   onReset: () => void;
 }
@@ -53,6 +60,7 @@ export function CoachingReport({
   analysis,
   mistakes,
   color,
+  pgn,
   onJumpToMistake,
   onReset,
 }: CoachingReportProps) {
@@ -64,6 +72,36 @@ export function CoachingReport({
   const estimate = estimatePlayingStrength(stats, ownMoveCount);
   const outcome = resolveOutcome(analysis.meta.result, color);
   const outcomeText = outcomeLabel(outcome);
+  const { session } = useAuth();
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
+
+  const onSave = async () => {
+    if (!session) return;
+    setSaveState("saving");
+    const payload = {
+      user_id: session.user.id,
+      pgn,
+      player_color: color,
+      result: analysis.meta.result,
+      accuracy: stats.accuracy,
+      avg_cp_loss: stats.averageCentipawnLoss,
+      move_counts: stats.counts,
+      estimated_rating_low: estimate.low,
+      estimated_rating_high: estimate.high,
+      opening: analysis.meta.opening ?? null,
+      coaching_report: report,
+    };
+    // Cast: coaching_report is jsonb; Supabase types require the Json alias but the shape is JSON-safe.
+    const { error } = await supabase.from("saved_games").insert(payload as never);
+    if (error) {
+      setSaveState("idle");
+      toast.error(error.message);
+      return;
+    }
+    setSaveState("saved");
+    toast.success("Game saved to My Games");
+  };
+
   const outcomeClass =
     outcome === "win"
       ? "border-cls-best/40 bg-cls-best/10 text-cls-best"
@@ -99,6 +137,24 @@ export function CoachingReport({
           <div className="flex flex-wrap items-center gap-3">
   <Metric label="Accuracy" value={`${stats.accuracy}%`} highlight />
   <Metric label="Avg. CP loss" value={String(stats.averageCentipawnLoss)} />
+  {session ? (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={onSave}
+      disabled={saveState !== "idle"}
+    >
+      {saveState === "saved" ? (
+        <><Check className="h-4 w-4" /> Saved</>
+      ) : (
+        <><Bookmark className="h-4 w-4" /> {saveState === "saving" ? "Saving…" : "Save game"}</>
+      )}
+    </Button>
+  ) : (
+    <Button asChild variant="outline" size="sm">
+      <Link to="/login"><Bookmark className="h-4 w-4" /> Sign in to save</Link>
+    </Button>
+  )}
   <Button variant="default" size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => { onReset(); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
     Analyze new game
   </Button>

@@ -13,6 +13,7 @@ export interface AnalysisState {
   report: CoachingReport | null;
   mistakes: KeyMistake[];
   color: Color;
+  pgn: string | null;
   error: string | null;
 }
 
@@ -23,6 +24,7 @@ const INITIAL: AnalysisState = {
   report: null,
   mistakes: [],
   color: "white",
+  pgn: null,
   error: null,
 };
 
@@ -38,7 +40,7 @@ export function useGameAnalysis() {
   const run = useCallback(
     async (pgn: string, meta: GameMeta, color: Color, depth = 13) => {
       const runId = ++runIdRef.current;
-      setState({ ...INITIAL, status: "evaluating", color });
+      setState({ ...INITIAL, status: "evaluating", color, pgn });
       const hasTimeData = /\[%clk|\[%emt|TimeControl|Clock/i.test(pgn);
 
       try {
