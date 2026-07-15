@@ -98,6 +98,8 @@ export interface KeyMistake {
 }
 
 export interface CoachingReport {
+  /** AI-detected opening name based on the moves played. */
+  opening?: string;
   /** Quick-read profile cards shown above the report. */
   playerSnapshot: {
     playingStyle: string;
