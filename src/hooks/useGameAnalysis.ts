@@ -68,6 +68,7 @@ export function useGameAnalysis() {
             counts: stats.counts,
             totalMoves: ownMoveCount,
             opening: analysis.meta.opening,
+            firstMoves: analysis.moves.slice(0, 20).map((m) => m.san),
             hasTimeData,
             estimatedRatingLow: estimate.low,
             estimatedRatingHigh: estimate.high,
