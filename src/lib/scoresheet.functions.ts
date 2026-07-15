@@ -1,9 +1,17 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
+// Cap each image data URL to ~2MB of base64 (~1.5MB decoded) to prevent
+// oversized payload abuse of the paid AI gateway.
+const MAX_IMAGE_CHARS = 2_800_000;
 
 /** One recognized image (a data URL) of a physical scoresheet. */
 const InputSchema = z.object({
-  images: z.array(z.string()).min(1).max(4),
+  images: z
+    .array(z.string().max(MAX_IMAGE_CHARS, "Image payload too large"))
+    .min(1)
+    .max(4),
 });
 
 export interface ScoresheetScanResult {
@@ -135,6 +143,7 @@ STEP 5 — OUTPUT RULES
 - Output ONLY the structured JSON. No explanation, no commentary, no markdown fences.`;
 
 export const scanScoresheet = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => InputSchema.parse(data))
   .handler(async ({ data }): Promise<ScoresheetScanResult> => {
     const apiKey = process.env.LOVABLE_API_KEY;
