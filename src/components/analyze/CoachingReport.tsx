@@ -197,7 +197,11 @@ export function CoachingReport({
             index={4}
             icon={Crown}
             label="Estimated Level"
-            value={`${estimate.label} · ~${estimate.low}–${estimate.high}`}
+            value={
+                    estimate.confidence <= 10
+                      ? "Too few moves to estimate accurately"
+                      : `${estimate.label} · ~${estimate.low}–${estimate.high}`
+                  }
           />
           <ConfidenceCard
             index={5}
