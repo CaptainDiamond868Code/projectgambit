@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { CoachingReport } from "./chess/types";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const MistakeSchema = z.object({
   moveNumber: z.number(),
@@ -202,6 +203,7 @@ function buildUserPrompt(input: CoachingInput): string {
 }
 
 export const generateCoachingReport = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => InputSchema.parse(data))
   .handler(async ({ data }): Promise<CoachingReport> => {
     const apiKey = process.env.LOVABLE_API_KEY;
