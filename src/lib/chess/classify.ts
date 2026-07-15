@@ -194,7 +194,18 @@ export function estimatePlayingStrength(
   const mistakeRate = c.mistake / n;
   const inaccRate = c.inaccuracy / n;
   const cleanShare = (c.best + c.excellent) / n;
-
+  
+if (n < 15) {
+  return {
+    low: 1000,
+    high: 2800,
+    centre: 1900,
+    label: "Too few moves to estimate",
+    confidence: 10,
+    confidenceLabel: "Low",
+    sampleMoves: n,
+  };
+}
   const baseElo = acplToElo(acpl);
   const secondaryNudge =
     -(blunderRate * 50) -
