@@ -88,7 +88,8 @@ export function CoachingReport({
       move_counts: stats.counts,
       estimated_rating_low: estimate.low,
       estimated_rating_high: estimate.high,
-      opening: analysis.meta.opening ?? null,
+      opening: report.opening ?? analysis.meta.opening ?? "Unknown Opening",
+      opponent: color === "white" ? analysis.meta.black : analysis.meta.white,
       coaching_report: report,
     };
     // Cast: coaching_report is jsonb; Supabase types require the Json alias but the shape is JSON-safe.
@@ -131,7 +132,7 @@ export function CoachingReport({
                   {outcomeText}
                 </span>
               )}
-              {analysis.meta.opening ? <span>· {analysis.meta.opening}</span> : null}
+              <span>· {report.opening ?? analysis.meta.opening ?? "Unknown Opening"}</span>
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
