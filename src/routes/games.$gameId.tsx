@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/components/SiteHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import type { CoachingReport as CoachingReportType } from "@/lib/chess/types";
+import { GameReview } from "@/components/analyze/GameReview";
+import { analyzeGame } from "@/lib/chess/analyze";
+import type { CoachingReport as CoachingReportType, GameAnalysis } from "@/lib/chess/types";
 
 export const Route = createFileRoute("/games/$gameId")({
   head: () => ({
@@ -25,6 +27,7 @@ interface Row {
   estimated_rating_low: number | null;
   estimated_rating_high: number | null;
   opening: string | null;
+  opponent: string | null;
   coaching_report: CoachingReportType;
   analyzed_at: string;
 }
@@ -35,6 +38,12 @@ function GameDetail() {
   const [row, setRow] = useState<Row | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+
+  // Re-analysis state for the interactive board replay
+  const [analysis, setAnalysis] = useState<GameAnalysis | null>(null);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
     if (!session) return;
@@ -55,6 +64,42 @@ function GameDetail() {
       cancelled = true;
     };
   }, [gameId, session]);
+
+  // Re-run the Stockfish analysis pipeline on the saved PGN so we can show
+  // the same interactive replay board used on the live analysis page. We
+  // only store the PGN in Supabase (not the full per-move engine output), so
+  // this recomputes it on demand when someone opens a saved report.
+  useEffect(() => {
+    if (!row) return;
+    let cancelled = false;
+    setAnalysisLoading(true);
+    setAnalysisError(null);
+    analyzeGame(
+      row.pgn,
+      {
+        white: row.player_color === "white" ? "You" : row.opponent ?? "Opponent",
+        black: row.player_color === "black" ? "You" : row.opponent ?? "Opponent",
+        result: row.result ?? "*",
+        opening: row.opening ?? undefined,
+      },
+      13,
+    )
+      .then((result) => {
+        if (cancelled) return;
+        setAnalysis(result);
+        setAnalysisLoading(false);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setAnalysisError(
+          err instanceof Error ? err.message : "Could not replay this game's board.",
+        );
+        setAnalysisLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [row]);
 
   if (authLoading || loading) {
     return (
@@ -103,6 +148,7 @@ function GameDetail() {
           <p className="mt-1 text-sm text-muted-foreground">
             Analyzed {format(new Date(row.analyzed_at), "MMMM d, yyyy")} · Played as{" "}
             {row.player_color}
+            {row.opponent ? ` vs ${row.opponent}` : ""}
             {row.result ? ` · ${row.result}` : ""}
           </p>
           <div className="mt-4 flex flex-wrap gap-3 text-sm">
@@ -117,6 +163,29 @@ function GameDetail() {
               }
             />
           </div>
+        </div>
+
+        {/* Interactive replay board */}
+        <div className="rounded-2xl border border-border bg-card/60 p-6">
+          <h2 className="mb-4 font-display text-lg font-semibold">Interactive replay</h2>
+          {analysisLoading && (
+            <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" /> Rebuilding the board from this game's PGN…
+            </div>
+          )}
+          {analysisError && !analysisLoading && (
+            <div className="rounded-xl border border-cls-blunder/40 bg-cls-blunder/10 p-4 text-sm text-cls-blunder">
+              {analysisError}
+            </div>
+          )}
+          {analysis && !analysisLoading && !analysisError && (
+            <GameReview
+              analysis={analysis}
+              activeIndex={activeIndex}
+              onIndexChange={setActiveIndex}
+              defaultOrientation={row.player_color}
+            />
+          )}
         </div>
 
         <Section title="Player snapshot">
