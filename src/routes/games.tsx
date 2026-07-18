@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import {
@@ -38,11 +38,19 @@ interface SavedGameRow {
   estimated_rating_low: number | null;
   estimated_rating_high: number | null;
   opening: string | null;
+  opponent: string | null;
   coaching_report: unknown;
   analyzed_at: string;
 }
 
 function GamesPage() {
+  // This route has a child route at /games/$gameId (the "games.$gameId.tsx"
+  // file). TanStack Router nests that child under this component, so we must
+  // render <Outlet /> for it to show. When we're on the exact "/games" path
+  // we render the full list below instead of the outlet.
+  const routerState = useRouterState();
+  const isChildRoute = routerState.location.pathname !== "/games";
+
   const { session, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [games, setGames] = useState<SavedGameRow[] | null>(null);
@@ -131,6 +139,12 @@ function GamesPage() {
     toast.success("Game deleted");
   };
 
+  // We're on a child route like /games/$gameId — render only that page.
+  // (GameDetail renders its own <SiteHeader />, so we don't wrap it here.)
+  if (isChildRoute) {
+    return <Outlet />;
+  }
+
   if (authLoading || !session) {
     return (
       <div className="min-h-screen bg-background">
@@ -187,6 +201,7 @@ function GamesPage() {
                   <thead className="bg-card/60 text-left text-xs uppercase tracking-widest text-muted-foreground">
                     <tr>
                       <th className="px-4 py-3">Date</th>
+                      <th className="px-4 py-3">Opponent</th>
                       <th className="px-4 py-3">Opening</th>
                       <th className="px-4 py-3">Result</th>
                       <th className="px-4 py-3">Accuracy</th>
@@ -200,7 +215,8 @@ function GamesPage() {
                         <td className="px-4 py-3 text-muted-foreground">
                           {format(new Date(g.analyzed_at), "MMM d, yyyy")}
                         </td>
-                        <td className="px-4 py-3">{g.opening ?? "—"}</td>
+                        <td className="px-4 py-3">{g.opponent ?? "Unknown"}</td>
+                        <td className="px-4 py-3">{g.opening ?? "Unknown Opening"}</td>
                         <td className="px-4 py-3">{g.result ?? "—"}</td>
                         <td className="px-4 py-3">
                           {g.accuracy != null ? `${g.accuracy}%` : "—"}
