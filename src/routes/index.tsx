@@ -83,7 +83,7 @@ const FAQ = [
   },
   {
     q: "Is it really free?",
-    a: "Yes — Project Gambit is a free personal coach for beginner and intermediate players.",
+    a: "Yes — Project Gambit is a free personal coach for every and any type of player.",
   },
 ];
 
