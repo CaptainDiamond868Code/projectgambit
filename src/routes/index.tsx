@@ -205,7 +205,7 @@ function Index() {
         <div className="mx-auto grid max-w-6xl gap-12 px-4 py-24 sm:px-6 sm:py-28 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-8">
           <div className="text-center lg:text-left">
             <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 font-notation text-[11px] font-medium tracking-wide text-muted-foreground lg:mx-0">
-              <ShieldCheck className="h-3.5 w-3.5 text-primary" /> stockfish://engine · ai://coach
+              <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Stockfish engine · AI-coach
             </div>
             <h1 className="font-hero mt-6 text-4xl font-normal leading-[1.05] sm:text-5xl lg:text-6xl">
               Improve after
