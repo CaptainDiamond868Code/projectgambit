@@ -1,6 +1,7 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @custom-variant dark (&:is(.dark *));
 
@@ -9,6 +10,12 @@
  * Deep slate canvas, emerald "improvement" accent, warm gold for brilliance.
  * All colors use oklch. Chess-specific tokens (board + move classification)
  * live alongside the shadcn semantic tokens.
+ *
+ * Landing-page-only additions: a serif display face (Fraunces) for the hero
+ * headline, and a monospace face (JetBrains Mono) for anything that reads
+ * like real chess notation — move badges, the coaching-feed ticker, eyebrow
+ * labels. Neither replaces the app-wide Space Grotesk / DM Sans pairing used
+ * everywhere else; they're scoped via .font-hero and .font-notation.
  */
 
 @theme inline {
@@ -71,6 +78,8 @@
 
   --font-body: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   --font-heading: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-hero-serif: "Fraunces", ui-serif, Georgia, serif;
+  --font-mono-notation: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
 
   --background: oklch(0.17 0.014 256);
   --foreground: oklch(0.96 0.005 250);
@@ -210,6 +219,56 @@ html:not(.dark) {
 
 @utility bg-gold-soft {
   background-image: var(--gradient-gold-soft);
+}
+
+/* Landing-page hero headline: a serif face with real character, used only
+   where explicitly applied (the hero h1), everything else keeps the
+   app-wide Space Grotesk. Utilities are emitted after @layer base, so this
+   correctly overrides the global h1 font-family rule above. */
+@utility font-hero {
+  font-family: var(--font-hero-serif);
+  letter-spacing: -0.01em;
+}
+
+/* Chess-notation styling for anything that should read like real PGN/engine
+   output: move badges, the hero's live coaching feed, eyebrow labels. */
+@utility font-notation {
+  font-family: var(--font-mono-notation);
+  letter-spacing: -0.01em;
+}
+
+/* Ambient checkerboard texture for the hero section only — grounded in the
+   subject rather than a generic radial-blur-behind-headline. Very low
+   opacity, oversized squares, faded out toward the bottom so it reads as
+   atmosphere rather than a literal tiled board. */
+@utility bg-chess-texture {
+  background-color: var(--color-background);
+  background-image:
+    linear-gradient(45deg, var(--board-dark) 25%, transparent 25%, transparent 75%, var(--board-dark) 75%),
+    linear-gradient(45deg, var(--board-dark) 25%, transparent 25%, transparent 75%, var(--board-dark) 75%);
+  background-size: 72px 72px;
+  background-position: 0 0, 36px 36px;
+  position: relative;
+}
+
+.bg-chess-texture {
+  opacity: 1;
+}
+
+.bg-chess-texture::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-background);
+  opacity: 0.94;
+  mask-image: linear-gradient(to bottom, transparent, black 15%, black 55%, transparent 95%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 15%, black 55%, transparent 95%);
+  pointer-events: none;
+}
+
+.bg-chess-texture > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* Premium loading + polish animations */
