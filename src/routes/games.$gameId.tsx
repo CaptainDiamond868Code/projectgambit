@@ -17,6 +17,11 @@ export const Route = createFileRoute("/games/$gameId")({
   component: GameDetail,
 });
 
+// In-memory cache so re-visiting a saved game's report during the same
+// browser session doesn't re-run the Stockfish analysis pipeline again.
+// Keyed by the saved game's row id. Cleared on a full page reload.
+const analysisCache = new Map<string, GameAnalysis>();
+
 interface Row {
   id: string;
   pgn: string;
@@ -71,6 +76,17 @@ function GameDetail() {
   // this recomputes it on demand when someone opens a saved report.
   useEffect(() => {
     if (!row) return;
+
+    // Already computed this game's board during this browser session —
+    // reuse it instantly instead of calling Stockfish again.
+    const cached = analysisCache.get(row.id);
+    if (cached) {
+      setAnalysis(cached);
+      setAnalysisLoading(false);
+      setAnalysisError(null);
+      return;
+    }
+
     let cancelled = false;
     setAnalysisLoading(true);
     setAnalysisError(null);
@@ -86,6 +102,7 @@ function GameDetail() {
     )
       .then((result) => {
         if (cancelled) return;
+        analysisCache.set(row.id, result);
         setAnalysis(result);
         setAnalysisLoading(false);
       })
