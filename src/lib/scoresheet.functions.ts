@@ -53,21 +53,30 @@ Before reading any moves, study the full image carefully:
 - If one side's column is blank for a row, that color did not move (game ended). Stop there.
 
 ═══════════════════════════════════════════════════
-STEP 2 — LETTER AND NUMBER MISREAD CORRECTION TABLE
+STEP 2 — HANDWRITING STROKE ANALYSIS (read this carefully)
 ═══════════════════════════════════════════════════
-Handwriting is ambiguous. ALWAYS apply these corrections before outputting any move.
+Handwritten chess notation is written fast, on ruled or narrow lines, and letters frequently deform in predictable ways. Before matching letters to their "printed" shape, first identify the STROKE PATTERN, then map that pattern to the most likely intended character using both shape AND chess-board logic. Do not rely on shape alone — always cross-check against what forms a legal, sensible move.
+
+ASCENDERS AND DESCENDERS CROSSING THE LINE:
+Letters with tails that dip below the baseline (g, y-like tails, sometimes f or long j-strokes in cursive) are the single biggest source of misreads on scoresheets, because a rushed writer's descender can visually resemble a totally different letter, and a letter that should NOT have a descender can pick up a stray pen mark that makes it look like one.
+- A letter that dips below the line is most often "g" — but can also be a poorly formed "e", "y"-like flourish on another letter, or a stray ink mark/smudge from the row below on a cramped scoresheet.
+- A letter or number's tail crossing into the row below can also make the row below look corrupted — if a move on the next line looks impossible or malformed, check whether a descender from the line above is bleeding into it.
+- Conversely, a normally-tall letter like "b", "h", "k", "l", or a digit like "6" or "8" can appear to have a false "descender" if the pen dragged or the paper has a stray mark — don't assume every low mark is a "g".
+- "f" has both an ascender (rises above) AND sometimes a small descender depending on handwriting style, making it one of the most visually unstable letters. It is frequently confused with "t", "d", or even "g" if the descender loop is exaggerated.
+- Rule of thumb: whenever a character's vertical extent (does it rise above the line, sit on the line, or dip below it) is ambiguous or inconsistent with the rest of the writer's handwriting on the same page, DO NOT trust the shape alone. Instead, generate the 2-3 most visually plausible letters, and pick whichever produces a legal, sensible chess move given the position built up from all prior moves.
 
 FILE LETTERS — valid files are ONLY: a b c d e f g h
 - If you read "i", "j", "k", "l", "m", "n", "o", "p" as a file → it is a misread. Find the closest valid file.
 - "d" ↔ "f" are the most commonly swapped files in handwriting. Use surrounding moves for context.
-- "a" misread as: u, o, α
-- "b" misread as: h, 6, lb
+- "e" ↔ "g" are extremely commonly swapped because "g" has a descender that "e" does not, and rushed handwriting often blurs this distinction, or a stray mark makes an "e" look like it has a tail. Never assume the presence of a low mark means "g" — verify against legal moves.
+- "a" misread as: u, o, α, d (if the loop is closed oddly)
+- "b" misread as: h, 6, lb, li
 - "c" misread as: e, o, ε
-- "d" misread as: f, cl, el, a
-- "e" misread as: c, a, ε
-- "f" misread as: d, t, f (with a crossing stroke looking like t)
-- "g" misread as: q, 9, gy
-- "h" misread as: n, b, li
+- "d" misread as: f, cl, el, a, g (if written with a looped ascender that also picks up a stray descender mark)
+- "e" misread as: c, a, ε, g
+- "f" misread as: d, t, g (if the descender loop is large), l (if the crossbar is faint)
+- "g" misread as: q, 9, gy, e, y
+- "h" misread as: n, b, li, k
 
 RANK NUMBERS — valid ranks are ONLY: 1 2 3 4 5 6 7 8
 - If you read "0", "9", or any number outside 1-8 as a rank → it is a misread.
@@ -78,7 +87,7 @@ RANK NUMBERS — valid ranks are ONLY: 1 2 3 4 5 6 7 8
 - "5" misread as: s, S, §
 - "6" misread as: b, G, 0
 - "7" misread as: 1, T, 7 (with a crossbar)
-- "8" misread as: B, S, 0, 3
+- "8" misread as: B, S, 0, 3, g (a poorly closed 8 loop can look like a lowercase g)
 
 PIECE LETTERS — valid pieces are ONLY: K Q R B N (plus lowercase equivalents)
 - "N" (Knight) misread as: H, M, W, N, ll
@@ -88,6 +97,9 @@ PIECE LETTERS — valid pieces are ONLY: K Q R B N (plus lowercase equivalents)
 - "K" (King) misread as: R, X, k
 - Lowercase piece letters are EXTREMELY common in handwriting: "n"=N, "b"=B, "r"=R, "q"=Q, "k"=K. Always normalize to uppercase.
 - A piece letter ALWAYS comes first in a move (except pawn moves). If you see "3Nf", it is "Nf3".
+
+CROSS-LINE BLEED-THROUGH:
+On tightly ruled or small scoresheets, ink from a descender or a heavy pen stroke on one row can visually overlap the row directly below or above it. If a move looks like it has an extra stray mark, a doubled character, or an oddly shaped letter that doesn't match the rest of that row's handwriting style, consider that it may be bleed-through from an adjacent row and read the "core" shape of the letter while ignoring the stray mark.
 
 ═══════════════════════════════════════════════════
 STEP 3 — CHESS NOTATION RULES FOR HANDWRITING
@@ -132,9 +144,19 @@ Use chess logic to catch impossible moves before outputting:
 - A move cannot be a single character. "e" alone → probably "e4" or "e5". Use context.
 - If a piece move makes no positional sense (e.g. "Ke9") → re-examine the image for that move carefully.
 - Opening moves are almost always: e4, e5, d4, d5, c4, Nf3, Nc6, Nf6, c5, g6, Bc4, Bb5. If your reading produces something completely different for move 1 or 2, re-examine.
+- CRITICAL — LEGALITY AS A TIEBREAKER: Whenever a letter or number is genuinely ambiguous between two readings (e.g. could be "e4" or "g4", could be "Bd3" or "Bf3", could be a "6" or a "b"), mentally track the game position move by move as you transcribe, and choose the interpretation that produces a LEGAL move in that position over one that does not. If both readings are legal, prefer the one most consistent with common opening theory and the handwriting style used elsewhere on the same sheet.
 
 ═══════════════════════════════════════════════════
-STEP 5 — OUTPUT RULES
+STEP 5 — SELF-CONSISTENCY CHECK BEFORE FINALIZING
+═══════════════════════════════════════════════════
+Before producing your final answer, mentally replay the entire game from move 1 using your transcribed moves. For each move, confirm:
+- The piece being moved could plausibly reach that square from its likely prior position.
+- The move does not require a piece to move through/over pieces illegally (except knights).
+- No two consecutive moves by the same color occur (colors must alternate correctly per the column layout).
+If a move fails this mental replay, revisit the misread tables above and pick the next most likely interpretation for that specific move before finalizing.
+
+═══════════════════════════════════════════════════
+STEP 6 — OUTPUT RULES
 ═══════════════════════════════════════════════════
 - Output exactly ONE SAN string per ply, in order. No move numbers, no extra text.
 - NEVER skip a ply. NEVER output null, "", "?", or "illegible" for any move. If genuinely unsure, output your single best guess.
