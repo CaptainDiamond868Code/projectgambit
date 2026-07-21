@@ -330,6 +330,21 @@ html:not(.dark) {
   animation: gambit-pulse-ring 2s ease-out infinite;
 }
 
+@keyframes gambit-gradient-x {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient-x {
+  background-size: 200% auto;
+  animation: gambit-gradient-x 6s ease-in-out infinite;
+}
+
 @keyframes gambit-collapsible-down {
   from {
     height: 0;
@@ -360,7 +375,8 @@ html:not(.dark) {
   .animate-shimmer,
   .animate-float,
   .animate-fade-up,
-  .animate-pulse-ring {
+  .animate-pulse-ring,
+  .animate-gradient-x {
     animation: none;
   }
 }
