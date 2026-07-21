@@ -6,8 +6,6 @@ import {
   Target,
   ListChecks,
   ShieldCheck,
-  Sparkles,
-  Upload,
   ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -33,39 +31,20 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const FEATURES = [
-  {
-    icon: Cpu,
-    title: "Real Stockfish engine",
-    body: "Every evaluation, best move and centipawn loss comes from Stockfish — never guessed by AI.",
-  },
-  {
-    icon: MessageSquareText,
-    title: "Plain-English coaching",
-    body: "AI translates the engine's findings into clear lessons, so you learn concepts, not just moves.",
-  },
-  {
-    icon: Target,
-    title: "Your biggest mistakes",
-    body: "See the three moves that mattered most, why they hurt, and the better idea to remember.",
-  },
-  {
-    icon: ListChecks,
-    title: "A plan to improve",
-    body: "Finish every review with one clear thing to practice before your next games.",
-  },
+// What you get, said plainly — no card chrome, just icon + line, generous
+// whitespace. Also folds in what used to be a separate "Why trust us"
+// section, since the two were saying overlapping things.
+const HIGHLIGHTS = [
+  { icon: Cpu, text: "Every evaluation comes from Stockfish — never guessed by AI." },
+  { icon: MessageSquareText, text: "AI explains the engine's findings in plain, encouraging English." },
+  { icon: Target, text: "See the three moves that mattered most, and why." },
+  { icon: ListChecks, text: "Leave with one clear thing to practice next." },
 ];
 
 const STEPS = [
-  { icon: Upload, title: "Upload your game", body: "Drag & drop a PGN or paste your moves. We validate it instantly." },
-  { icon: Cpu, title: "Stockfish analyzes", body: "The engine evaluates every position and classifies each move." },
-  { icon: Sparkles, title: "Get coached", body: "Read a personalized report and replay your game interactively." },
-];
-
-const WHY = [
-  { title: "Accuracy first", body: "Analysis is 100% engine-based. The AI only explains — it never invents." },
-  { title: "Made to teach", body: "Reports focus on recurring weaknesses and concepts, like a real coach." },
-  { title: "Free & private", body: "No account needed. Upload a game and start learning in seconds." },
+  { title: "Upload your game", body: "Drag & drop a PGN or paste your moves." },
+  { title: "Stockfish analyzes", body: "Every position is evaluated from scratch." },
+  { title: "Get coached", body: "Read your report and replay the game." },
 ];
 
 const FAQ = [
@@ -239,69 +218,53 @@ function Index() {
         </div>
       </section>
 
-      {/* Features */}
-      <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-        <SectionHeading eyebrow="Features" title="Everything you need to get better" />
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {FEATURES.map((f) => (
-            <div
-              key={f.title}
-              className="rounded-2xl border border-border bg-card/50 p-6 transition-all hover:-translate-y-0.5 hover:border-primary/40"
-            >
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <f.icon className="h-5 w-5" />
+      {/* What you get — plain icon + line, no card chrome, generous whitespace */}
+      <section className="mx-auto max-w-3xl px-4 py-24 sm:px-6">
+        <div className="space-y-10">
+          {HIGHLIGHTS.map((h) => (
+            <div key={h.text} className="flex items-start gap-4">
+              <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <h.icon className="h-4 w-4" />
               </span>
-              <h3 className="mt-4 font-semibold">{f.title}</h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{f.body}</p>
+              <p className="pt-1 text-base leading-relaxed text-foreground/90 sm:text-lg">
+                {h.text}
+              </p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* How it works */}
-      <section className="border-y border-border/60 bg-card/20">
-        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-          <SectionHeading eyebrow="How It Works" title="From PGN to a real coaching session" />
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
+      {/* How it works — plain typography, no boxes */}
+      <section className="border-y border-border/60">
+        <div className="mx-auto max-w-4xl px-4 py-20 sm:px-6">
+          <h2 className="text-center font-display text-2xl font-bold sm:text-3xl">
+            From PGN to a real coaching session
+          </h2>
+          <div className="mt-14 grid gap-10 sm:grid-cols-3 sm:gap-6">
             {STEPS.map((s, i) => (
-              <div
-                key={s.title}
-                className="relative rounded-2xl border border-border bg-card/50 p-6 transition-all hover:-translate-y-0.5 hover:border-primary/40"
-              >
-                <span className="font-notation text-sm font-bold text-primary">
-                  0{i + 1}
+              <div key={s.title} className="text-center sm:text-left">
+                <span className="font-notation text-3xl font-semibold text-primary/70">
+                  {String(i + 1).padStart(2, "0")}
                 </span>
-                <span className="mt-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <s.icon className="h-5 w-5" />
-                </span>
-                <h3 className="mt-4 font-semibold">{s.title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{s.body}</p>
+                <h3 className="mt-3 font-semibold">{s.title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                  {s.body}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Why */}
-      <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-        <SectionHeading eyebrow="Why Project Gambit" title="Coaching you can trust" />
-        <div className="mt-10 grid gap-4 md:grid-cols-3">
-          {WHY.map((w) => (
-            <div key={w.title} className="rounded-2xl border border-border bg-card/50 p-6">
-              <h3 className="font-semibold">{w.title}</h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{w.body}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="border-t border-border/60 bg-card/20">
-        <div className="mx-auto max-w-3xl px-4 py-20 sm:px-6">
-          <SectionHeading eyebrow="FAQ" title="Frequently asked questions" />
-          <div className="mt-8 space-y-3">
+      {/* FAQ — simple divided list, no per-item card chrome */}
+      <section>
+        <div className="mx-auto max-w-2xl px-4 py-24 sm:px-6">
+          <h2 className="text-center font-display text-2xl font-bold sm:text-3xl">
+            Frequently asked questions
+          </h2>
+          <div className="mt-10 divide-y divide-border">
             {FAQ.map((item) => (
-              <details key={item.q} className="group rounded-xl border border-border bg-card/50 p-5">
+              <details key={item.q} className="group py-5">
                 <summary className="cursor-pointer list-none font-medium marker:content-none">
                   <span className="flex items-center justify-between gap-4">
                     {item.q}
@@ -312,11 +275,16 @@ function Index() {
               </details>
             ))}
           </div>
-          <div className="mt-12 rounded-2xl border border-border bg-hero-glow p-10 text-center">
+
+          <div className="mt-20 text-center">
             <h3 className="font-display text-2xl font-bold">Ready for your first review?</h3>
-            <p className="mt-2 text-muted-foreground">Upload a game and leave feeling like you had a real coaching session.</p>
+            <p className="mt-2 text-muted-foreground">
+              Upload a game and leave feeling like you had a real coaching session.
+            </p>
             <Button asChild variant="hero" size="xl" className="mt-6">
-              <Link to="/analyze">Analyze My Game <ArrowRight className="h-4 w-4" /></Link>
+              <Link to="/analyze">
+                Analyze My Game <ArrowRight className="h-4 w-4" />
+              </Link>
             </Button>
           </div>
         </div>
@@ -325,17 +293,6 @@ function Index() {
       <footer className="border-t border-border/60 py-8 text-center text-sm text-muted-foreground">
         Project Gambit · Analysis by Stockfish, explanations by AI.
       </footer>
-    </div>
-  );
-}
-
-function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) {
-  return (
-    <div className="text-center">
-      <div className="font-notation text-xs font-semibold uppercase tracking-widest text-primary">
-        {eyebrow}
-      </div>
-      <h2 className="mt-2 font-display text-3xl font-bold">{title}</h2>
     </div>
   );
 }
