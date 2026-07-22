@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { validatePgn } from "@/lib/chess/pgn";
 import { SAMPLE_PGN } from "@/lib/chess/samples";
+import { playUploadSound } from "@/lib/sound";
 import type { Color, GameMeta } from "@/lib/chess/types";
 
 interface PgnUploadProps {
@@ -21,7 +22,10 @@ export function PgnUpload({ onAnalyze }: PgnUploadProps) {
 
   const readFile = useCallback((file: File) => {
     const reader = new FileReader();
-    reader.onload = () => setPgn(String(reader.result ?? ""));
+    reader.onload = () => {
+      setPgn(String(reader.result ?? ""));
+      playUploadSound();
+    };
     reader.readAsText(file);
   }, []);
 
@@ -66,7 +70,10 @@ export function PgnUpload({ onAnalyze }: PgnUploadProps) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setPgn(SAMPLE_PGN)}
+            onClick={() => {
+              setPgn(SAMPLE_PGN);
+              playUploadSound();
+            }}
             className="text-primary hover:text-primary"
           >
             <Sparkles className="h-4 w-4" /> Try a sample game
@@ -156,3 +163,4 @@ function Meta({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
