@@ -23,6 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
+import { useBoardTheme } from "@/hooks/useBoardTheme";
 import { deleteAccount } from "@/lib/account.functions";
 
 export const Route = createFileRoute("/settings")({
@@ -41,6 +42,14 @@ function SettingsPage() {
   const navigate = useNavigate();
   const { session, user, username, loading, refreshUsername, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
+  const {
+    colorKey: boardColorKey,
+    pieceSet,
+    setColorKey: setBoardColorKey,
+    setPieceSet,
+    colorOptions,
+    pieceSetOptions,
+  } = useBoardTheme();
   const [defaultColor, setDefaultColor] = useState<"white" | "black">("white");
 
   useEffect(() => {
@@ -143,6 +152,60 @@ function SettingsPage() {
                   <SelectItem value="black">Black</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Board color</Label>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {colorOptions.map((opt) => (
+                  <button
+                    key={opt.key}
+                    type="button"
+                    onClick={() => {
+                      setBoardColorKey(opt.key);
+                      toast.success("Board color updated");
+                    }}
+                    className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-left text-xs font-medium transition-colors ${
+                      boardColorKey === opt.key
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border bg-background/40 text-muted-foreground hover:border-primary/40"
+                    }`}
+                  >
+                    <span
+                      className="h-5 w-5 shrink-0 overflow-hidden rounded"
+                      style={{
+                        backgroundImage: `linear-gradient(135deg, ${opt.light} 50%, ${opt.dark} 50%)`,
+                      }}
+                    />
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="piece-set">Piece set</Label>
+              <Select
+                value={pieceSet}
+                onValueChange={(v) => {
+                  setPieceSet(v as typeof pieceSet);
+                  toast.success("Piece set updated");
+                }}
+              >
+                <SelectTrigger id="piece-set">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {pieceSetOptions.map((opt) => (
+                    <SelectItem key={opt.key} value={opt.key}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Applies to every board across the site, including the analysis board and game replays.
+              </p>
             </div>
           </Section>
 
@@ -427,3 +490,4 @@ function DeleteAccountButton({ onDeleted }: { onDeleted: () => Promise<void> }) 
     </AlertDialog>
   );
 }
+
