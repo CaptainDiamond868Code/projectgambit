@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { LogOut, User as UserIcon, Library, Settings as SettingsIcon, Sun, Moon } from "lucide-react";
+import { LogOut, User as UserIcon, Library, Settings as SettingsIcon, Sun, Moon, Swords } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -32,6 +32,11 @@ export function SiteHeader() {
           Project Gambit
         </Link>
         <div className="flex items-center gap-2">
+          <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+            <Link to="/board">
+              <Swords className="h-4 w-4" /> Analysis Board
+            </Link>
+          </Button>
           <Button
             variant="ghost"
             size="icon"
@@ -70,6 +75,11 @@ export function SiteHeader() {
                   {displayName || "Signed in"}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem asChild className="sm:hidden">
+                  <Link to="/board">
+                    <Swords className="h-4 w-4" /> Analysis Board
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link to="/games">
                     <Library className="h-4 w-4" /> My Games
