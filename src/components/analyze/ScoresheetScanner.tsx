@@ -1,3 +1,4 @@
+import { playUploadSound } from "@/lib/sound";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -82,6 +83,7 @@ export function ScoresheetScanner({ onAnalyze }: ScoresheetScannerProps) {
     try {
       const result = await scan({ data: { images: previews } });
       setMoves(result.moves);
+      playUploadSound();
       setMeta({
         white: result.white || "White",
         black: result.black || "Black",
