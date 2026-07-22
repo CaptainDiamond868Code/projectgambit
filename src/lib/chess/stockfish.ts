@@ -20,6 +20,17 @@ interface PendingEval {
   latest: { cp: number | null; mate: number | null; pv: string[]; depth: number };
 }
 
+/** One line of a MultiPV live analysis, updated as the engine searches deeper. */
+export interface MultiPvLine {
+  /** 1-based line rank (1 = best line found so far). */
+  multipv: number;
+  cp: number | null;
+  mate: number | null;
+  /** Principal variation in UCI notation. */
+  pv: string[];
+  depth: number;
+}
+
 export class StockfishEngine {
   private worker: Worker | null = null;
   private ready = false;
@@ -139,6 +150,78 @@ export class StockfishEngine {
       this.send(`position fen ${fen}`);
       this.send(`go depth ${depth}`);
     });
+  }
+
+  /**
+   * Streams the top N ("MultiPV") engine lines for a position as the search
+   * deepens, calling onUpdate with the current best-known lines every time
+   * one improves — this is what powers the analysis board's live engine
+   * panel, similar to chess.com's analysis view. Independent of evaluate();
+   * uses its own message listener so it never interferes with single-line
+   * evaluation calls elsewhere in the app (e.g. during full-game analysis).
+   *
+   * Returns a stop() function — call it to cancel the search early (e.g.
+   * when the user makes another move) or when unmounting.
+   */
+  startAnalysis(
+    fen: string,
+    options: { multiPv?: number; depth?: number } = {},
+    onUpdate: (lines: MultiPvLine[]) => void,
+  ): () => void {
+    if (!this.worker || !this.ready) {
+      throw new Error("Stockfish engine is not initialized.");
+    }
+    const multiPv = options.multiPv ?? 3;
+    const depth = options.depth ?? 20;
+    const lines = new Map<number, MultiPvLine>();
+    let stopped = false;
+
+    const handler = (e: MessageEvent) => {
+      if (stopped) return;
+      const line = typeof e.data === "string" ? e.data : "";
+      if (!line || !line.startsWith("info") || !line.includes(" score ")) return;
+
+      const tokens = line.split(/\s+/);
+      const mpvIdx = tokens.indexOf("multipv");
+      const mpv = mpvIdx >= 0 ? Number(tokens[mpvIdx + 1]) : 1;
+
+      const depthIdx = tokens.indexOf("depth");
+      const d = depthIdx >= 0 ? Number(tokens[depthIdx + 1]) : 0;
+
+      const scoreIdx = tokens.indexOf("score");
+      let cp: number | null = null;
+      let mate: number | null = null;
+      if (scoreIdx >= 0) {
+        const kind = tokens[scoreIdx + 1];
+        const value = Number(tokens[scoreIdx + 2]);
+        const stm = sideToMoveFromFen(fen);
+        const sign = stm === "w" ? 1 : -1;
+        if (kind === "cp") cp = sign * value;
+        else if (kind === "mate") mate = sign * value;
+      }
+
+      const pvIdx = tokens.indexOf("pv");
+      const pv = pvIdx >= 0 ? tokens.slice(pvIdx + 1) : [];
+      if (pv.length === 0) return;
+
+      const existing = lines.get(mpv);
+      if (!existing || d >= existing.depth) {
+        lines.set(mpv, { multipv: mpv, cp, mate, pv, depth: d });
+        onUpdate(Array.from(lines.values()).sort((a, b) => a.multipv - b.multipv));
+      }
+    };
+
+    this.worker.addEventListener("message", handler);
+    this.send(`setoption name MultiPV value ${multiPv}`);
+    this.send("ucinewgame");
+    this.send(`position fen ${fen}`);
+    this.send(`go depth ${depth}`);
+
+    return () => {
+      stopped = true;
+      this.send("stop");
+      this.worker?.removeEventListener("message", handler);
+    };
   }
 
   quit() {
