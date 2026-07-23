@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Chess } from "chess.js";
 import { RotateCcw, RefreshCw, Cpu } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -107,21 +107,24 @@ function BoardPage() {
     return top ? lineToEvaluation(top) : { cp: 0, mate: null, bestMove: null, pv: [], depth: 0 };
   }, [lines]);
 
-  function applyMove(from: string, to: string, promotion = "q"): boolean {
-    const base = new Chess(currentFen);
-    let move;
-    try {
-      move = base.move({ from, to, promotion });
-    } catch {
-      return false;
-    }
-    if (!move) return false;
-    const truncated = moves.slice(0, activeIndex);
-    truncated.push({ san: move.san, fen: base.fen() });
-    setMoves(truncated);
-    setActiveIndex(truncated.length);
-    return true;
-  }
+  const applyMove = useCallback(
+    (from: string, to: string, promotion = "q"): boolean => {
+      const base = new Chess(activeIndex === 0 ? startFenRef.current : moves[activeIndex - 1].fen);
+      let move;
+      try {
+        move = base.move({ from, to, promotion });
+      } catch {
+        return false;
+      }
+      if (!move) return false;
+      const truncated = moves.slice(0, activeIndex);
+      truncated.push({ san: move.san, fen: base.fen() });
+      setMoves(truncated);
+      setActiveIndex(truncated.length);
+      return true;
+    },
+    [moves, activeIndex],
+  );
 
   function playSuggested(line: MultiPvLine) {
     const first = line.pv[0];
@@ -152,6 +155,32 @@ function BoardPage() {
     }
   }
 
+  // Arrow-key navigation through the move history (← previous, → next, Home
+  // first, End last) — ignored while typing in the FEN input.
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
+        return;
+      }
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        setActiveIndex((i) => Math.max(0, i - 1));
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        setActiveIndex((i) => Math.min(moves.length, i + 1));
+      } else if (e.key === "Home") {
+        e.preventDefault();
+        setActiveIndex(0);
+      } else if (e.key === "End") {
+        e.preventDefault();
+        setActiveIndex(moves.length);
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [moves.length]);
+
   const rows: Array<{ number: number; white?: string; black?: string; whiteIdx?: number; blackIdx?: number }> = [];
   moves.forEach((m, i) => {
     const rowIdx = Math.floor(i / 2);
@@ -180,14 +209,8 @@ function BoardPage() {
           {/* Board + eval bar */}
           <div className="flex gap-3">
             <EvalBar evaluation={bestEvaluation} orientation={orientation} />
-              <div
-                  className="mx-auto"
-                  style={{
-                    width: 520,
-                    height: 520,
-                  }}
-                >
-                <ChessBoardView
+            <div className="mx-auto w-full max-w-[520px]">
+              <ChessBoardView
                 id="analysis-board"
                 fen={currentFen}
                 orientation={orientation}
@@ -206,6 +229,12 @@ function BoardPage() {
                   <RefreshCw className="h-4 w-4" /> Flip board
                 </Button>
               </div>
+
+              <p className="mt-2 text-center text-xs text-muted-foreground">
+                Click a piece then a square to move it, drag it, or use{" "}
+                <kbd className="rounded border border-border bg-secondary/60 px-1">←</kbd>{" "}
+                <kbd className="rounded border border-border bg-secondary/60 px-1">→</kbd> to step through moves.
+              </p>
 
               <div className="mx-auto mt-4 max-w-md">
                 <Label htmlFor="fen-input" className="text-xs text-muted-foreground">
