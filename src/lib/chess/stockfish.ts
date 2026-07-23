@@ -35,6 +35,8 @@ export class StockfishEngine {
   private worker: Worker | null = null;
   private ready = false;
   private current: PendingEval | null = null;
+  /** Bumped every startAnalysis() call so stale async handshakes never touch a newer session. */
+  private streamGeneration = 0;
 
   async init(): Promise<void> {
     if (this.ready) return;
@@ -153,6 +155,36 @@ export class StockfishEngine {
   }
 
   /**
+   * Sends "stop" and waits for the engine's "bestmove" acknowledgement (or a
+   * short timeout) before resolving. UCI engines expect a running search to
+   * be fully halted before you issue a new "position"/"go" — sending them
+   * back to back without waiting can desync the engine so it never emits
+   * further info lines at all. This is what makes startAnalysis() safe to
+   * call repeatedly in quick succession (e.g. every time the user moves a
+   * piece, or changes depth/line-count on the analysis board).
+   */
+  private stopAndWaitBestmove(timeoutMs = 1500): Promise<void> {
+    if (!this.worker) return Promise.resolve();
+    return new Promise((resolve) => {
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        this.worker?.removeEventListener("message", handler);
+        clearTimeout(timer);
+        resolve();
+      };
+      const handler = (e: MessageEvent) => {
+        const line = typeof e.data === "string" ? e.data : "";
+        if (line.startsWith("bestmove")) finish();
+      };
+      this.worker?.addEventListener("message", handler);
+      const timer = setTimeout(finish, timeoutMs);
+      this.send("stop");
+    });
+  }
+
+  /**
    * Streams the top N ("MultiPV") engine lines for a position as the search
    * deepens, calling onUpdate with the current best-known lines every time
    * one improves — this is what powers the analysis board's live engine
@@ -160,8 +192,12 @@ export class StockfishEngine {
    * uses its own message listener so it never interferes with single-line
    * evaluation calls elsewhere in the app (e.g. during full-game analysis).
    *
-   * Returns a stop() function — call it to cancel the search early (e.g.
-   * when the user makes another move) or when unmounting.
+   * Safely stops and waits for any previous search on this engine instance
+   * to fully halt before starting the new one, so repeated calls (new
+   * position, new depth, new line count) never desync the engine.
+   *
+   * Returns a stop() function — call it to cancel the search early or when
+   * unmounting.
    */
   startAnalysis(
     fen: string,
@@ -173,11 +209,12 @@ export class StockfishEngine {
     }
     const multiPv = options.multiPv ?? 3;
     const depth = options.depth ?? 20;
+    const generation = ++this.streamGeneration;
     const lines = new Map<number, MultiPvLine>();
     let stopped = false;
 
     const handler = (e: MessageEvent) => {
-      if (stopped) return;
+      if (stopped || generation !== this.streamGeneration) return;
       const line = typeof e.data === "string" ? e.data : "";
       if (!line || !line.startsWith("info") || !line.includes(" score ")) return;
 
@@ -212,15 +249,22 @@ export class StockfishEngine {
     };
 
     this.worker.addEventListener("message", handler);
-    this.send(`setoption name MultiPV value ${multiPv}`);
-    this.send("ucinewgame");
-    this.send(`position fen ${fen}`);
-    this.send(`go depth ${depth}`);
+
+    // Always fully stop whatever the engine was doing before starting the
+    // next search — this is the critical fix that prevents the engine from
+    // silently hanging when the position/depth/line-count changes quickly.
+    void this.stopAndWaitBestmove().then(() => {
+      if (stopped || generation !== this.streamGeneration || !this.worker) return;
+      this.send(`setoption name MultiPV value ${multiPv}`);
+      this.send("ucinewgame");
+      this.send(`position fen ${fen}`);
+      this.send(`go depth ${depth}`);
+    });
 
     return () => {
       stopped = true;
-      this.send("stop");
       this.worker?.removeEventListener("message", handler);
+      this.send("stop");
     };
   }
 
