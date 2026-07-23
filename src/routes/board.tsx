@@ -180,8 +180,14 @@ function BoardPage() {
           {/* Board + eval bar */}
           <div className="flex gap-3">
             <EvalBar evaluation={bestEvaluation} orientation={orientation} />
-            <div className="mx-auto w-full max-w-[520px]">
-              <ChessBoardView
+              <div
+                  className="mx-auto"
+                  style={{
+                    width: 520,
+                    height: 520,
+                  }}
+                >
+                <ChessBoardView
                 id="analysis-board"
                 fen={currentFen}
                 orientation={orientation}
