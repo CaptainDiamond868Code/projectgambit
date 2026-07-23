@@ -380,3 +380,11 @@ html:not(.dark) {
     animation: none;
   }
 }
+
+.react-chessboard *,
+.react-chessboard div {
+    margin: 0;
+    padding: 0;
+    line-height: 0;
+    box-sizing: border-box;
+}
