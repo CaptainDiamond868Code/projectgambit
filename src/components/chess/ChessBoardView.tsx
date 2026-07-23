@@ -56,7 +56,8 @@ export function ChessBoardView({
   }, [highlights]);
 
   return (
-    <Chessboard
+    <div style={{ width: "100%", height: "100%" }}>
+      <Chessboard
       options={{
         id,
         position: fen,
@@ -82,12 +83,15 @@ export function ChessBoardView({
         darkSquareNotationStyle: { color: colors.light, opacity: 0.75 },
         lightSquareNotationStyle: { color: colors.dark, opacity: 0.85 },
         boardStyle: {
+          width: "100%",
+          height: "100%",
           borderRadius: "14px",
           overflow: "hidden",
-          boxShadow: "var(--shadow-elegant)",
+          boxShadow: "0 10px 28px rgba(0,0,0,.18)",
         },
       }}
     />
+    </div>
   );
 }
 
